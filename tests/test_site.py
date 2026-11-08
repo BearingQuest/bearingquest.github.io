@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import math
 import re
 from html.parser import HTMLParser
@@ -252,3 +253,101 @@ def test_theme_option_labels_show_keyboard_focus() -> None:
     declarations = declarations_from_block(block)
     assert declarations.get("outline") == "3px solid var(--focus)"
     assert declarations.get("outline-offset") == "2px"
+
+
+EXPECTED_ASSET_HASHES = {
+    "assets/fonts/Cinzel-wght.woff2": "2ab8b19811f4842ad4c9d168f934ef046355e81a3a6f36e15fe7a4abe38239d3",
+    "assets/fonts/IBMPlexMono-Medium-Latin1.woff2": "41201b658a328b9d00368215c2f1102770f80b15952ab82631e4006255e6365d",
+    "assets/fonts/IBMPlexMono-Regular-Latin1.woff2": "e8993d946649b9d01abb1ed06d574b19d8ea3e66b5c3948602db335c44c18e56",
+    "assets/fonts/Inter-Bold.woff2": "fa888127b6da015b65569f0351f3b5c391ad928904951f1c20e9f8462a8d95ea",
+    "assets/fonts/Inter-Regular.woff2": "e06f6b1bc553aaea4e4668023ed0ab0a147129c3107f511bc7d03d361b0ae085",
+    "assets/img/bearing-quest-lockup-on-dark.svg": "6a34f44ae1bd1880d9ff1e14628f7c4c3947a90a7113a81934e20ab7d08ea981",
+    "assets/img/bearing-quest-lockup-on-light.svg": "464c80c7ee3124dcd7e9fef0b9fbf216eb23a08b592bd10ffd506bec8388511c",
+    "assets/img/bearing-quest-mark-on-dark.svg": "f6ac1cd9c1a823b85af350979f745b0957ab1e2119b97a5289093f25489da09a",
+    "assets/img/bearing-quest-mark-on-light.svg": "4a62583464ca8a17b62973d9e90f46c7d82afcab89156ca6f30c433cb2ef22ac",
+}
+SVG_FILES = sorted((ROOT / "assets/img").glob("*.svg"))
+
+
+def test_font_and_svg_hashes_are_pinned() -> None:
+    present = {
+        path.relative_to(ROOT).as_posix()
+        for pattern in ("assets/fonts/*.woff2", "assets/img/*.svg")
+        for path in ROOT.glob(pattern)
+    }
+    assert present == set(EXPECTED_ASSET_HASHES)
+    for name, expected in EXPECTED_ASSET_HASHES.items():
+        actual = hashlib.sha256((ROOT / name).read_bytes()).hexdigest()
+        assert actual == expected, f"{name}: SHA-256 {actual} is not pinned"
+
+
+@pytest.mark.parametrize("path", SVG_FILES, ids=lambda path: path.name)
+def test_svg_has_no_active_content(path: Path) -> None:
+    text = path.read_text(encoding="utf-8")
+    assert not re.search(r"<script", text, re.IGNORECASE)
+    assert not re.search(r"\son[a-z]+\s*=", text, re.IGNORECASE)
+    assert not re.search(r"<foreignObject", text, re.IGNORECASE)
+    for match in re.finditer(
+        r"\s(?:xlink:)?href\s*=\s*(['\"])(.*?)\1", text, re.IGNORECASE
+    ):
+        assert re.fullmatch(r"#[\w.-]+", match.group(2)), (
+            f"{path.name}: href is not a fragment: {match.group(2)}"
+        )
+
+
+def test_font_faces_resolve_and_have_licenses() -> None:
+    css_dir = ROOT / "assets/css"
+    css = (css_dir / "site.css").read_text(encoding="utf-8")
+    faces = re.findall(r"@font-face\s*\{([^}]*)\}", css)
+    assert faces
+    families = set()
+    for face in faces:
+        family = re.search(r"font-family:\s*\"([^\"]+)\"", face).group(1)
+        families.add(family)
+        urls = re.findall(r"url\(\s*['\"]?([^'\")]+)['\"]?\s*\)", face)
+        assert urls, f"{family}: @font-face has no url()"
+        for url in urls:
+            assert (css_dir / url).resolve().is_file(), f"{family}: {url} is missing"
+    assert families == {"Inter", "IBM Plex Mono", "Cinzel"}
+    for family in families:
+        license_file = ROOT / "assets/fonts" / f"OFL-{family.replace(' ', '-')}.txt"
+        assert license_file.is_file(), f"{family}: {license_file.name} is missing"
+
+
+def test_no_references_to_compass_svg() -> None:
+    this_file = Path(__file__).resolve()
+    for path in ROOT.rglob("*"):
+        relative = path.relative_to(ROOT)
+        if any(part.startswith(".") for part in relative.parts):
+            continue
+        if not path.is_file() or path.resolve() == this_file:
+            continue
+        if path.suffix not in {".html", ".css", ".js", ".md", ".txt", ".toml", ".py"}:
+            continue
+        text = path.read_text(encoding="utf-8")
+        assert "compass.svg" not in text, f"{relative}: references compass.svg"
+
+
+def rule_declarations(css: str, selector: str) -> dict[str, str]:
+    match = re.search(rf"^[ \t]*{re.escape(selector)}\s*\{{", css, re.MULTILINE)
+    assert match, f"no rule for {selector}"
+    return declarations_from_block(css_block(css[match.start() :], selector))
+
+
+def test_logo_variants_switch_in_both_dark_theme_paths() -> None:
+    css = (ROOT / "assets/css/site.css").read_text(encoding="utf-8")
+    assert rule_declarations(css, ".theme-dark").get("display") == "none"
+
+    media_blocks = [
+        css_block(css[match.start() :], "@media (prefers-color-scheme: dark)")
+        for match in re.finditer(r"@media \(prefers-color-scheme: dark\)", css)
+    ]
+    auto_dark = "".join(media_blocks)
+    for scope, source in (
+        (":root:not([data-theme])", auto_dark),
+        ('[data-theme="dark"]', css),
+    ):
+        hidden = rule_declarations(source, f"{scope} .theme-light")
+        shown = rule_declarations(source, f"{scope} .theme-dark")
+        assert hidden.get("display") == "none", scope
+        assert shown.get("display") not in (None, "none"), scope

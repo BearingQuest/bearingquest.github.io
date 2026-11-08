@@ -1,7 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title desc">
-  <title id="title">Bearing Quest placeholder compass</title>
-  <desc id="desc">Placeholder mark awaiting the official Bearing Quest compass SVG.</desc>
-  <circle cx="32" cy="32" r="27" fill="none" stroke="#C85A27" stroke-width="2"/>
-  <path d="M37 27 48 16 39 39 16 48l11-11 9-20 1 10Z" fill="#C85A27"/>
-  <circle cx="32" cy="32" r="3" fill="#F4F6F8"/>
-</svg>

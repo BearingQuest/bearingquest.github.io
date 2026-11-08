@@ -24,3 +24,6 @@ uv run pytest
 
 The site code is available under the MIT License. Site text is © TODO year
 Dusten Harrison, all rights reserved.
+
+The self-hosted fonts (Inter, IBM Plex Mono and Cinzel) are licensed under the
+SIL Open Font License 1.1; see `assets/fonts/OFL-*.txt`.
