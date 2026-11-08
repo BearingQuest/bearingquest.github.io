@@ -8,7 +8,7 @@ There is no build step, no package manager and no npm.
 - `index.html`, `about.html`, `resume.html`, `404.html` - the pages
 - `assets/css/site.css` - the only stylesheet, including light and dark theme tokens
 - `assets/js/theme.js` - the only script (theme switch)
-- `assets/img/` - images, including the compass logo
+- `assets/img/` - images, including the Bearing Quest mark and lockup SVGs
 - `tests/test_site.py` - pytest checks for the site
 - `CNAME`, `.nojekyll` - GitHub Pages configuration
 

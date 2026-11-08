@@ -68,8 +68,45 @@
   color-scheme: dark;
 }
 
-/* TODO: Add self-hosted Inter, IBM Plex Mono, and Cinzel woff2 files and
-   @font-face declarations after the official files and OFL licenses are supplied. */
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../fonts/Inter-Regular.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("../fonts/Inter-Bold.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "IBM Plex Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../fonts/IBMPlexMono-Regular-Latin1.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "IBM Plex Mono";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("../fonts/IBMPlexMono-Medium-Latin1.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Cinzel";
+  font-style: normal;
+  font-weight: 400 900;
+  font-display: swap;
+  src: url("../fonts/Cinzel-wght.woff2") format("woff2");
+}
 
 * {
   box-sizing: border-box;
@@ -212,20 +249,33 @@ main {
   display: inline-flex;
   width: fit-content;
   align-items: center;
-  gap: 0.7rem;
-  color: var(--accent);
-  font-family: Cinzel, Georgia, serif;
-  font-size: 1.05rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  line-height: 1.1;
-  text-decoration: none;
-  text-transform: uppercase;
 }
 
 .brand img {
-  width: 2.5rem;
-  height: 2.5rem;
+  width: auto;
+  height: 44px;
+}
+
+.theme-dark {
+  display: none;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) .theme-light {
+    display: none;
+  }
+
+  :root:not([data-theme]) .theme-dark {
+    display: block;
+  }
+}
+
+[data-theme="dark"] .theme-light {
+  display: none;
+}
+
+[data-theme="dark"] .theme-dark {
+  display: block;
 }
 
 .site-header nav,
@@ -321,7 +371,7 @@ main {
   color: var(--accent);
   font-family: "IBM Plex Mono", ui-monospace, monospace;
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 500;
   letter-spacing: 0.14em;
   text-transform: uppercase;
 }
@@ -403,7 +453,7 @@ main {
   color: var(--text);
   font-family: "IBM Plex Mono", ui-monospace, monospace;
   font-size: 0.7rem;
-  font-weight: 650;
+  font-weight: 500;
   letter-spacing: 0.02em;
 }
 
