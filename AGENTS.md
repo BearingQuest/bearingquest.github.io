@@ -11,6 +11,18 @@ There is no build step, no package manager and no npm.
 - `assets/img/` - images, including the Bearing Quest mark and lockup SVGs
 - `tests/test_site.py` - pytest checks for the site
 - `CNAME`, `.nojekyll` - GitHub Pages configuration
+- `.github/` - CI workflows and Dependabot configuration
+
+## CI
+
+`.github/workflows/ci.yml` runs on every pull request and every push to `main`:
+
+- `test` - `uv sync --locked`, then `uv run pytest`
+- `gitleaks` - scans the full git history for secrets with a checksum-pinned gitleaks CLI
+- `pip-audit` - audits every package locked in `uv.lock` for known vulnerabilities
+
+All three must pass before merge. `pip-audit-daily.yml` also runs the audit on
+`main` every day. Dependabot proposes weekly updates for `uv` and GitHub Actions.
 
 ## Rules
 
