@@ -1,0 +1,91 @@
+name: CI
+
+# Checks on every pull request and every push to main:
+#   - test:      the pytest site checks in tests/.
+#   - gitleaks:  secrets anywhere in the git history.
+#   - pip-audit: known vulnerabilities in the versions locked in uv.lock.
+# All three must pass before merge.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: test
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e # v10.3.2
+        with:
+          version: "0.13.1"
+      # uv installs the Python named in .python-version.
+      - name: Install dependencies from uv.lock
+        run: uv sync --locked
+      - name: Run tests
+        run: uv run pytest
+
+  gitleaks:
+    name: gitleaks
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    # gitleaks/gitleaks-action needs a licence key for organization repos, so
+    # this runs the CLI directly. The version and checksum are bumped by hand;
+    # Dependabot does not track them.
+    env:
+      GITLEAKS_VERSION: 8.30.1
+      GITLEAKS_SHA256: 551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Install gitleaks (checksum pinned)
+        run: |
+          set -euo pipefail
+          base="https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}"
+          tarball="gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          curl -sSfL -o "$tarball" "$base/$tarball"
+          curl -sSfL -o checksums.txt "$base/gitleaks_${GITLEAKS_VERSION}_checksums.txt"
+          # The release's checksums file must agree with the pinned checksum.
+          published=$(awk -v f="$tarball" '$2 == f { print $1 }' checksums.txt)
+          if [ "$published" != "$GITLEAKS_SHA256" ]; then
+            echo "::error::checksums.txt has '$published' for $tarball, expected $GITLEAKS_SHA256"
+            exit 1
+          fi
+          echo "${GITLEAKS_SHA256}  ${tarball}" | sha256sum --check
+          tar -xzf "$tarball" gitleaks
+      - name: Scan git history
+        run: ./gitleaks git --redact --verbose .
+
+  pip-audit:
+    name: pip-audit
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e # v10.3.2
+        with:
+          version: "0.13.1"
+      - name: Install pip-audit from uv.lock
+        run: uv sync --locked
+      # Exports every package in uv.lock with hashes, then audits that list
+      # without pip. A new advisory against a locked version can fail a run
+      # with no code change.
+      - name: Audit locked dependencies
+        run: |
+          uv export --locked --format requirements-txt --no-emit-project --quiet --output-file requirements-audit.txt
+          uv run --locked pip-audit --strict --disable-pip -r requirements-audit.txt

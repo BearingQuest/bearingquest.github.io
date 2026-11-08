@@ -6,5 +6,10 @@ dependencies = [
   "pytest>=8,<10",
 ]
 
+[dependency-groups]
+dev = [
+  "pip-audit==2.10.1",
+]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
