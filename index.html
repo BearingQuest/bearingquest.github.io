@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta http-equiv="Content-Security-Policy"
+          content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self'; base-uri 'none'; form-action 'none'">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+    <meta name="description" content="A showcase of the personal software projects in the Bearing Quest family.">
+    <title>Projects | Bearing Quest</title>
+    <link rel="icon" href="assets/img/compass.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="assets/css/site.css">
+    <script src="assets/js/theme.js"></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to main content</a>
+    <header class="site-header">
+      <div class="header-inner">
+        <a class="brand" href="index.html" aria-label="Bearing Quest home">
+          <img src="assets/img/compass.svg" alt="" role="presentation" width="44" height="44">
+          <span>Bearing Quest</span>
+        </a>
+        <nav aria-label="Primary navigation">
+          <a href="index.html" aria-current="page">Projects</a>
+          <a href="about.html">About</a>
+          <a href="resume.html">Resume</a>
+        </nav>
+        <fieldset class="theme-control">
+          <legend>Theme</legend>
+          <div class="theme-options">
+            <label><input type="radio" name="theme" value="auto" checked> Auto</label>
+            <label><input type="radio" name="theme" value="light"> Light</label>
+            <label><input type="radio" name="theme" value="dark"> Dark</label>
+          </div>
+          <output class="visually-hidden" data-theme-status aria-live="polite">Theme: Auto</output>
+        </fieldset>
+      </div>
+    </header>
+
+    <main id="main">
+      <section class="hero" aria-labelledby="page-title">
+        <p class="eyebrow">Personal software projects</p>
+        <h1 id="page-title">Projects on a steady bearing</h1>
+        <p class="lede todo">[TODO: short introduction from Dusten]</p>
+      </section>
+
+      <section class="projects" aria-labelledby="projects-title">
+        <div class="section-heading">
+          <p class="eyebrow">Project family</p>
+          <h2 id="projects-title">Explore the work</h2>
+        </div>
+        <div class="project-grid">
+          <article class="project-card project-card--risk">
+            <div class="card-heading">
+              <h3>Risk Trainer</h3>
+              <span class="badge">Live</span>
+            </div>
+            <p>Browser exercise that teaches security risk prioritization: five findings, two fixes.</p>
+            <div class="card-links">
+              <a href="https://d13b88u8g6wpqx.cloudfront.net/" rel="noopener noreferrer">Open live project <span aria-hidden="true">↗</span></a>
+              <span class="todo">[TODO: confirm repository URL]</span>
+            </div>
+          </article>
+
+          <article class="project-card project-card--register">
+            <div class="card-heading">
+              <h3>Bearing Register</h3>
+              <span class="badge">In design (pre-code)</span>
+            </div>
+            <p>Open-source GRC-as-code risk register: risks as YAML in Git, rules enforced in CI.</p>
+            <div class="card-links">
+              <span class="todo">[TODO: confirm repository URL]</span>
+            </div>
+          </article>
+
+          <article class="project-card project-card--vector">
+            <div class="card-heading">
+              <h3>QuestVector</h3>
+              <span class="badge">Proof of concept</span>
+            </div>
+            <p>Local-first career-management CLI and desktop app; scores job descriptions against a career dossier.</p>
+            <div class="card-links">
+              <span class="todo">[TODO: confirm repository URL]</span>
+            </div>
+          </article>
+
+          <article class="project-card project-card--cast">
+            <div class="card-heading">
+              <h3>QuestCast</h3>
+              <span class="badge">Personal use</span>
+            </div>
+            <p>Manual-run tool that drafts X and LinkedIn posts from one recent source; human review before anything posts.</p>
+            <div class="card-links">
+              <span class="todo">[TODO: confirm repository URL]</span>
+            </div>
+          </article>
+
+          <article class="project-card project-card--dossier">
+            <div class="card-heading">
+              <h3>DossierNexus</h3>
+              <span class="badge">Planned</span>
+            </div>
+            <p>Local-first tool that proposes career-dossier claims, each with its source, for the user to approve.</p>
+            <div class="card-links">
+              <span class="muted">No repository yet</span>
+            </div>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="footer-inner">
+        <div>
+          <p class="wordmark">Bearing Quest</p>
+          <p>Code MIT licensed · Site text © <span class="todo">[TODO: year]</span> Dusten Harrison, all rights reserved.</p>
+        </div>
+        <nav aria-label="External links">
+          <a href="https://github.com/BearingQuest" rel="noopener noreferrer">GitHub <span aria-hidden="true">↗</span></a>
+          <a href="https://dustenharrison.blogspot.com" rel="noopener noreferrer">Blog <span aria-hidden="true">↗</span></a>
+          <a href="https://www.linkedin.com/in/dustenharrison" rel="noopener noreferrer">LinkedIn <span aria-hidden="true">↗</span></a>
+        </nav>
+      </div>
+    </footer>
+  </body>
+</html>
