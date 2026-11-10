@@ -1,7 +1,9 @@
 # Bearing Quest website
 
-Hand-written static site served by GitHub Pages from `main` at bearingquest.com.
-There is no build step, no package manager and no npm.
+Hand-written static site deployed to bearingquest.com by
+`.github/workflows/pages.yml`, which publishes only the paths listed in
+`site-files.txt`. There is no build step (the workflow only copies files), no
+package manager and no npm.
 
 ## Layout
 
@@ -10,7 +12,10 @@ There is no build step, no package manager and no npm.
 - `assets/js/theme.js` - the only script (theme switch)
 - `assets/img/` - images, including the Bearing Quest mark and lockup SVGs
 - `tests/test_site.py` - pytest checks for the site
-- `CNAME`, `.nojekyll` - GitHub Pages configuration
+- `tests/test_pages_deploy.py` - pytest checks for `site-files.txt` and `pages.yml`
+- `site-files.txt` - the only paths published to the site; every tracked root
+  file is either listed there or in the test's not-published list
+- `CNAME`, `.nojekyll` - unpublished, kept as the branch-publishing fallback
 - `.github/` - CI workflows and Dependabot configuration
 
 ## CI
@@ -23,6 +28,10 @@ There is no build step, no package manager and no npm.
 
 All three must pass before merge. `pip-audit-daily.yml` also runs the audit on
 `main` every day. Dependabot proposes weekly updates for `uv` and GitHub Actions.
+
+`.github/workflows/pages.yml` copies the `site-files.txt` paths into the Pages
+artifact. Its `build` job runs on every pull request and push to `main`; its
+`deploy` job runs only on a push to `main` or a manual run on `main`.
 
 ## Rules
 
