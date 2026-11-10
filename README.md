@@ -5,7 +5,8 @@ personal software projects by Dusten Harrison.
 
 The site is hand-written HTML5, CSS and a small same-origin JavaScript file for
 theme selection. It has no build step, package manager, external dependencies,
-analytics or trackers. GitHub Pages serves the files from the repository root.
+analytics or trackers. A GitHub Actions workflow (`.github/workflows/pages.yml`)
+publishes only the paths listed in `site-files.txt` to GitHub Pages.
 
 ## Local preview
 

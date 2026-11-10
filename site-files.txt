@@ -1,0 +1,9 @@
+# Paths published to bearingquest.com by .github/workflows/pages.yml.
+# One repo-relative path per line; a folder publishes everything tracked in
+# it. Anything not listed here stays out of the site. Hidden paths, absolute
+# paths and ".." are rejected. tests/test_pages_deploy.py checks this list.
+index.html
+about.html
+resume.html
+404.html
+assets/

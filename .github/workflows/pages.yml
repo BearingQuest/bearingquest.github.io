@@ -1,0 +1,84 @@
+name: Pages
+
+# Publishes the site to GitHub Pages. Only the paths listed in site-files.txt
+# are copied into the artifact, so repo files such as AGENTS.md, tests/ and
+# .github/ never reach bearingquest.com. The build job also runs on pull
+# requests to prove the copy step; only a push to main or a manual run on
+# main deploys. The custom domain comes from the repository's Pages settings, not
+# from the CNAME file, which stays in the repo (unpublished) as the
+# branch-publishing fallback.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    # Per ref, so pull request builds never queue behind or replace a deploy.
+    concurrency:
+      group: pages-build-${{ github.ref }}
+      cancel-in-progress: true
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Copy the paths in site-files.txt into _site
+        run: |
+          set -euo pipefail
+          mkdir _site
+          while IFS= read -r line || [ -n "$line" ]; do
+            path="${line%%#*}"
+            path="${path#"${path%%[![:space:]]*}"}"
+            path="${path%"${path##*[![:space:]]}"}"
+            [ -n "$path" ] || continue
+            case "$path" in
+              /* | .* | */.*)
+                echo "::error::site-files.txt: absolute, hidden or '..' path: $path"
+                exit 1
+                ;;
+            esac
+            path="${path%/}"
+            if [ -L "$path" ] || [ ! -e "$path" ]; then
+              echo "::error::site-files.txt: missing path or symlink: $path"
+              exit 1
+            fi
+            dest="_site/$(dirname "$path")"
+            mkdir -p "$dest"
+            cp -R "$path" "$dest/"
+          done < site-files.txt
+          if [ -n "$(find _site -type l)" ]; then
+            echo "::error::_site contains a symlink"
+            exit 1
+          fi
+          find _site -type f | sort
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: _site/
+
+  deploy:
+    name: deploy
+    needs: build
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    # One deploy at a time; a running deploy is never cancelled.
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    permissions:
+      pages: write # deploy the artifact to GitHub Pages
+      id-token: write # deploy-pages proves the run's origin to Pages with OIDC
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
