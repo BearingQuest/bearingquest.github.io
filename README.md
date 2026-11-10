@@ -18,8 +18,12 @@ through that server. The site does not require compilation.
 With [uv](https://docs.astral.sh/uv/) installed:
 
 ```text
-uv run pytest
+make check   # ruff lint, ruff format check, then pytest
+make audit   # pip-audit every package locked in uv.lock
+make hooks   # once per clone: pre-push runs gitleaks on the pushed commits
 ```
+
+The pre-push hook needs gitleaks (`brew install gitleaks`).
 
 ## Licensing
 

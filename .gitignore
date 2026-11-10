@@ -2,6 +2,14 @@
 .venv/
 __pycache__/
 .pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
 .env*
 dist/
+*.tfstate
+*.tfstate.*
+.terraform/
 .claude/settings.local.json
+# Written by `make audit` and the CI pip-audit job.
+requirements-audit.txt
