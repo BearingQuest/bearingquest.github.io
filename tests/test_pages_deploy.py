@@ -2,13 +2,12 @@ from __future__ import annotations
 
 import posixpath
 import re
-import subprocess
 from html.parser import HTMLParser
 from pathlib import Path, PurePosixPath
 from urllib.parse import unquote, urlsplit
 
 import yaml
-
+from _proc import run
 
 ROOT = Path(__file__).resolve().parents[1]
 SITE_FILES = ROOT / "site-files.txt"
@@ -24,6 +23,7 @@ JOBS = WORKFLOW["jobs"]
 # added here or to site-files.txt.
 NOT_PUBLISHED = {
     ".claude",
+    ".githooks",
     ".github",
     ".gitignore",
     ".nojekyll",
@@ -32,6 +32,7 @@ NOT_PUBLISHED = {
     "CLAUDE.md",
     "CNAME",
     "LICENSE",
+    "Makefile",
     "README.md",
     "pyproject.toml",
     "site-files.txt",
@@ -66,7 +67,7 @@ def site_entries() -> list[str]:
 def tracked_files() -> list[str]:
     """Tracked files plus untracked ones that aren't ignored, so a new file is
     classified before it is committed."""
-    result = subprocess.run(
+    result = run(
         ["git", "ls-files", "-z", "--cached", "--others", "--exclude-standard"],
         cwd=ROOT,
         capture_output=True,
@@ -97,9 +98,7 @@ def test_site_files_entries_are_safe_and_exist() -> None:
     for entry in entries:
         parts = PurePosixPath(entry).parts
         assert not entry.startswith("/"), f"absolute path: {entry}"
-        assert not any(part.startswith(".") for part in parts), (
-            f"hidden or '..' path: {entry}"
-        )
+        assert not any(part.startswith(".") for part in parts), f"hidden or '..' path: {entry}"
         target = ROOT / entry.rstrip("/")
         assert target.exists(), f"listed path is missing: {entry}"
         assert not target.is_symlink(), f"listed path is a symlink: {entry}"
@@ -116,9 +115,7 @@ def test_every_root_entry_is_classified() -> None:
     listed = {PurePosixPath(entry).parts[0] for entry in site_entries()}
     assert not listed & NOT_PUBLISHED
     unclassified = root_entries - listed - NOT_PUBLISHED
-    assert not unclassified, (
-        f"add to site-files.txt or NOT_PUBLISHED: {sorted(unclassified)}"
-    )
+    assert not unclassified, f"add to site-files.txt or NOT_PUBLISHED: {sorted(unclassified)}"
     stale = NOT_PUBLISHED - root_entries
     assert not stale, f"NOT_PUBLISHED names untracked entries: {sorted(stale)}"
 
@@ -139,9 +136,7 @@ class LinkParser(HTMLParser):
         super().__init__(convert_charrefs=True)
         self.links: list[str] = []
 
-    def handle_starttag(
-        self, tag: str, attrs: list[tuple[str, str | None]]
-    ) -> None:
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         for name, value in attrs:
             if name in {"href", "src"} and value:
                 self.links.append(value)
@@ -160,9 +155,7 @@ def resolve_local(source: str, link: str) -> str | None:
     if target.startswith("/"):
         resolved = posixpath.normpath(target.lstrip("/"))
     else:
-        resolved = posixpath.normpath(
-            posixpath.join(posixpath.dirname(source), target)
-        )
+        resolved = posixpath.normpath(posixpath.join(posixpath.dirname(source), target))
     if target.endswith("/") or resolved == ".":
         resolved = posixpath.normpath(posixpath.join(resolved, "index.html"))
     return resolved
@@ -231,8 +224,7 @@ def test_build_copies_only_site_files_and_uploads_the_artifact() -> None:
     assert "done < site-files.txt" in copy[0]["run"]
     assert "set -euo pipefail" in copy[0]["run"]
     upload = [
-        step for step in steps
-        if step.get("uses", "").startswith("actions/upload-pages-artifact@")
+        step for step in steps if step.get("uses", "").startswith("actions/upload-pages-artifact@")
     ]
     assert len(upload) == 1
     assert upload[0]["with"] == {"path": "_site/"}

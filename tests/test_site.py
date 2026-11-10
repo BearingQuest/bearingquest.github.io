@@ -9,11 +9,14 @@ from urllib.parse import unquote, urlsplit
 
 import pytest
 
-
 ROOT = Path(__file__).resolve().parents[1]
 HTML_FILES = sorted(ROOT.glob("*.html"))
-CSP = """<meta http-equiv="Content-Security-Policy"
-          content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self'; base-uri 'none'; form-action 'none'">"""
+# The exact tag, line break and indent included, as it appears in every page.
+CSP = (
+    '<meta http-equiv="Content-Security-Policy"\n'
+    "          content=\"default-src 'none'; script-src 'self'; style-src 'self'; "
+    "img-src 'self'; font-src 'self'; base-uri 'none'; form-action 'none'\">"
+)
 EXTERNAL_SCHEMES = {"http", "https"}
 
 
@@ -24,9 +27,7 @@ class SiteParser(HTMLParser):
         self.inline_script_text: list[str] = []
         self._in_inline_script = False
 
-    def handle_starttag(
-        self, tag: str, attrs: list[tuple[str, str | None]]
-    ) -> None:
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         attributes = dict(attrs)
         self.start_tags.append((tag, attributes))
         if tag == "script" and not attributes.get("src"):
@@ -96,9 +97,7 @@ def test_internal_links_and_assets_resolve(path: Path) -> None:
             target = ROOT / target_path.lstrip("/")
             if target.is_dir():
                 target /= "index.html"
-            assert target.is_file(), (
-                f"{path.name}: {tag}[{attribute}] does not resolve: {value}"
-            )
+            assert target.is_file(), f"{path.name}: {tag}[{attribute}] does not resolve: {value}"
 
 
 @pytest.mark.parametrize("path", HTML_FILES, ids=lambda path: path.name)
@@ -160,9 +159,7 @@ def css_block(css: str, selector: str) -> str:
 
 
 def tokens_from_block(block: str) -> dict[str, str]:
-    return dict(
-        re.findall(r"--([\w-]+)\s*:\s*(#[0-9a-fA-F]{6})\s*;", block)
-    )
+    return dict(re.findall(r"--([\w-]+)\s*:\s*(#[0-9a-fA-F]{6})\s*;", block))
 
 
 def declarations_from_block(block: str) -> dict[str, str]:
@@ -175,18 +172,14 @@ def declarations_from_block(block: str) -> dict[str, str]:
 def relative_luminance(hex_color: str) -> float:
     channels = [int(hex_color[index : index + 2], 16) / 255 for index in (1, 3, 5)]
     linear = [
-        channel / 12.92
-        if channel <= 0.04045
-        else math.pow((channel + 0.055) / 1.055, 2.4)
+        channel / 12.92 if channel <= 0.04045 else math.pow((channel + 0.055) / 1.055, 2.4)
         for channel in channels
     ]
     return 0.2126 * linear[0] + 0.7152 * linear[1] + 0.0722 * linear[2]
 
 
 def contrast_ratio(first: str, second: str) -> float:
-    lighter, darker = sorted(
-        (relative_luminance(first), relative_luminance(second)), reverse=True
-    )
+    lighter, darker = sorted((relative_luminance(first), relative_luminance(second)), reverse=True)
     return (lighter + 0.05) / (darker + 0.05)
 
 
@@ -256,15 +249,42 @@ def test_theme_option_labels_show_keyboard_focus() -> None:
 
 
 EXPECTED_ASSET_HASHES = {
-    "assets/fonts/Cinzel-wght.woff2": "2ab8b19811f4842ad4c9d168f934ef046355e81a3a6f36e15fe7a4abe38239d3",
-    "assets/fonts/IBMPlexMono-Medium-Latin1.woff2": "41201b658a328b9d00368215c2f1102770f80b15952ab82631e4006255e6365d",
-    "assets/fonts/IBMPlexMono-Regular-Latin1.woff2": "e8993d946649b9d01abb1ed06d574b19d8ea3e66b5c3948602db335c44c18e56",
-    "assets/fonts/Inter-Bold.woff2": "fa888127b6da015b65569f0351f3b5c391ad928904951f1c20e9f8462a8d95ea",
-    "assets/fonts/Inter-Regular.woff2": "e06f6b1bc553aaea4e4668023ed0ab0a147129c3107f511bc7d03d361b0ae085",
-    "assets/img/bearing-quest-lockup-on-dark.svg": "6a34f44ae1bd1880d9ff1e14628f7c4c3947a90a7113a81934e20ab7d08ea981",
-    "assets/img/bearing-quest-lockup-on-light.svg": "464c80c7ee3124dcd7e9fef0b9fbf216eb23a08b592bd10ffd506bec8388511c",
-    "assets/img/bearing-quest-mark-on-dark.svg": "f6ac1cd9c1a823b85af350979f745b0957ab1e2119b97a5289093f25489da09a",
-    "assets/img/bearing-quest-mark-on-light.svg": "4a62583464ca8a17b62973d9e90f46c7d82afcab89156ca6f30c433cb2ef22ac",
+    "assets/fonts/Cinzel-wght.woff2": (
+        "2ab8b19811f4842ad4c9d168f934ef046355e81a3a6f36e15fe7a4abe38239d3"
+    ),
+    "assets/fonts/IBMPlexMono-Medium-Latin1.woff2": (
+        "41201b658a328b9d00368215c2f1102770f80b15952ab82631e4006255e6365d"
+    ),
+    "assets/fonts/IBMPlexMono-Regular-Latin1.woff2": (
+        "e8993d946649b9d01abb1ed06d574b19d8ea3e66b5c3948602db335c44c18e56"
+    ),
+    "assets/fonts/Inter-Bold.woff2": (
+        "fa888127b6da015b65569f0351f3b5c391ad928904951f1c20e9f8462a8d95ea"
+    ),
+    "assets/fonts/Inter-Regular.woff2": (
+        "e06f6b1bc553aaea4e4668023ed0ab0a147129c3107f511bc7d03d361b0ae085"
+    ),
+    "assets/fonts/OFL-Cinzel.txt": (
+        "f2b3029aba64c378bf0963b62945eee15e564fe4330b934c8f2eb058282b5e83"
+    ),
+    "assets/fonts/OFL-IBM-Plex-Mono.txt": (
+        "7e6b2818edbd8f6a01ae80641cc8f16a51080d08fb4e532be3a0b6f74adb07da"
+    ),
+    "assets/fonts/OFL-Inter.txt": (
+        "262481e844521b326f5ecd053e59b98c8b2da78c8ee1bdbb6e8174305e54935a"
+    ),
+    "assets/img/bearing-quest-lockup-on-dark.svg": (
+        "6a34f44ae1bd1880d9ff1e14628f7c4c3947a90a7113a81934e20ab7d08ea981"
+    ),
+    "assets/img/bearing-quest-lockup-on-light.svg": (
+        "464c80c7ee3124dcd7e9fef0b9fbf216eb23a08b592bd10ffd506bec8388511c"
+    ),
+    "assets/img/bearing-quest-mark-on-dark.svg": (
+        "f6ac1cd9c1a823b85af350979f745b0957ab1e2119b97a5289093f25489da09a"
+    ),
+    "assets/img/bearing-quest-mark-on-light.svg": (
+        "4a62583464ca8a17b62973d9e90f46c7d82afcab89156ca6f30c433cb2ef22ac"
+    ),
 }
 SVG_FILES = sorted((ROOT / "assets/img").glob("*.svg"))
 
@@ -272,7 +292,7 @@ SVG_FILES = sorted((ROOT / "assets/img").glob("*.svg"))
 def test_font_and_svg_hashes_are_pinned() -> None:
     present = {
         path.relative_to(ROOT).as_posix()
-        for pattern in ("assets/fonts/*.woff2", "assets/img/*.svg")
+        for pattern in ("assets/fonts/*.woff2", "assets/fonts/OFL-*.txt", "assets/img/*.svg")
         for path in ROOT.glob(pattern)
     }
     assert present == set(EXPECTED_ASSET_HASHES)
@@ -287,9 +307,7 @@ def test_svg_has_no_active_content(path: Path) -> None:
     assert not re.search(r"<script", text, re.IGNORECASE)
     assert not re.search(r"\son[a-z]+\s*=", text, re.IGNORECASE)
     assert not re.search(r"<foreignObject", text, re.IGNORECASE)
-    for match in re.finditer(
-        r"\s(?:xlink:)?href\s*=\s*(['\"])(.*?)\1", text, re.IGNORECASE
-    ):
+    for match in re.finditer(r"\s(?:xlink:)?href\s*=\s*(['\"])(.*?)\1", text, re.IGNORECASE):
         assert re.fullmatch(r"#[\w.-]+", match.group(2)), (
             f"{path.name}: href is not a fragment: {match.group(2)}"
         )

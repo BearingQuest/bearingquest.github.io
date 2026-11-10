@@ -13,6 +13,11 @@ package manager and no npm.
 - `assets/img/` - images, including the Bearing Quest mark and lockup SVGs
 - `tests/test_site.py` - pytest checks for the site
 - `tests/test_pages_deploy.py` - pytest checks for `site-files.txt` and `pages.yml`
+- `tests/test_hooks.py` - pytest checks for the pre-push hook and the Makefile
+- `tests/_proc.py` - the only place the tests start a process
+- `Makefile` - `make check` (ruff and pytest), `make audit` (pip-audit, as in
+  CI), `make hooks` (installs `.githooks/`); `make help` lists them
+- `.githooks/pre-push` - runs gitleaks on the commits being pushed
 - `site-files.txt` - the only paths published to the site; every tracked root
   file is either listed there or in the test's not-published list
 - `CNAME`, `.nojekyll` - unpublished, kept as the branch-publishing fallback
@@ -43,5 +48,5 @@ artifact. Its `build` job runs on every pull request and push to `main`; its
 - Bearing Quest is the name of a family of projects. Never present it as a
   company, firm, studio or team.
 - Never put a phone number, street address or email address in any page.
-- Run `uv run pytest` before opening any PR.
+- Run `make check` before opening any PR.
 - Work on a branch. Never push to `main` and never merge.
