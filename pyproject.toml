@@ -7,13 +7,20 @@ dependencies = []
 [dependency-groups]
 dev = [
   "pip-audit==2.10.1",
+  "playwright==1.64.1",
   "pytest>=8,<10",
+  "pytest-playwright==0.10.0",
   "pyyaml==6.0.3",
   "ruff==0.17.3",
 ]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["tests"]
+# e2e tests need a browser, so a plain pytest run (make check) skips them;
+# make e2e selects them with -m e2e.
+addopts = "-m 'not e2e'"
+markers = ["e2e: Chromium tests against the built site (make e2e)"]
 
 [tool.ruff]
 line-length = 100
