@@ -31,6 +31,7 @@ NOT_PUBLISHED = {
     "AGENTS.md",
     "CLAUDE.md",
     "CNAME",
+    "docs",
     "LICENSE",
     "Makefile",
     "README.md",

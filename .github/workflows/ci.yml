@@ -1,10 +1,12 @@
 name: CI
 
 # Checks on every pull request and every push to main:
-#   - test:      the pytest site checks in tests/.
-#   - gitleaks:  secrets anywhere in the git history.
+#   - check:     `make check`: ruff lint, ruff format check and the pytest site checks.
+#   - gitleaks:  secrets anywhere in the git history (SARIF to code scanning).
+#   - semgrep:   static analysis with the public registry rules (SARIF to code scanning).
 #   - pip-audit: known vulnerabilities in the versions locked in uv.lock.
-# All three must pass before merge.
+#   - zizmor:    static analysis of the workflows in .github.
+# All five must pass before merge; .github/rulesets/main.json requires them by name.
 
 on:
   pull_request:
@@ -19,8 +21,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  test:
-    name: test
+  check:
+    name: check
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
@@ -33,13 +35,16 @@ jobs:
       # uv installs the Python named in .python-version.
       - name: Install dependencies from uv.lock
         run: uv sync --locked
-      - name: Run tests
-        run: uv run pytest
+      - name: Lint, format check and test
+        run: make check
 
   gitleaks:
     name: gitleaks
     runs-on: ubuntu-24.04
     timeout-minutes: 5
+    permissions:
+      contents: read
+      security-events: write # upload the SARIF report to code scanning
     # gitleaks/gitleaks-action needs a licence key for organization repos, so
     # this runs the CLI directly. The version and checksum are bumped by hand;
     # Dependabot does not track them.
@@ -66,8 +71,39 @@ jobs:
           fi
           echo "${GITLEAKS_SHA256}  ${tarball}" | sha256sum --check
           tar -xzf "$tarball" gitleaks
+      # Findings do not stop this step: the report is uploaded first, then the
+      # last step fails the job. gitleaks leaves lines marked gitleaks:allow
+      # out of the SARIF, so no suppression filter is needed.
       - name: Scan git history
-        run: ./gitleaks git --redact --verbose .
+        id: scan
+        continue-on-error: true
+        run: ./gitleaks git --redact --verbose --report-format sarif --report-path gitleaks.sarif .
+      # Skipped on fork pull requests, whose token cannot write security events.
+      - name: Upload SARIF to code scanning
+        if: always() && github.event.pull_request.head.repo.fork != true
+        uses: github/codeql-action/upload-sarif@1fc58d04a4d4374f921bdac573c3811c240f9c26 # v4.39.2
+        with:
+          sarif_file: gitleaks.sarif
+          category: gitleaks
+      # Fails unless the scan succeeded and a readable SARIF report has no
+      # results, so a gitleaks error or a missing report never passes.
+      - name: Fail on findings
+        if: always()
+        env:
+          SCAN_OUTCOME: ${{ steps.scan.outcome }}
+        run: |
+          python3 - <<'EOF'
+          import json
+          import os
+          outcome = os.environ["SCAN_OUTCOME"]
+          with open("gitleaks.sarif", encoding="utf-8") as handle:
+              report = json.load(handle)
+          if not report["runs"]:
+              raise SystemExit("gitleaks.sarif has no runs")
+          count = sum(len(run["results"]) for run in report["runs"])
+          print(f"gitleaks scan {outcome}, {count} finding(s)")
+          raise SystemExit(1 if count or outcome != "success" else 0)
+          EOF
 
   pip-audit:
     name: pip-audit
@@ -89,3 +125,79 @@ jobs:
         run: |
           uv export --locked --format requirements-txt --no-emit-project --quiet --output-file requirements-audit.txt
           uv run --locked pip-audit --strict --disable-pip -r requirements-audit.txt
+
+  semgrep:
+    name: semgrep
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      security-events: write # upload the SARIF report to code scanning
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          version: "0.13.1"
+      # The semgrep CLI from PyPI with public registry rules; no login and no
+      # semgrep-action. --exclude-newer is the release date plus one day, so
+      # uvx resolves semgrep's dependencies to a fixed snapshot. The rule packs
+      # are fetched at run time and change over time (accepted, see
+      # docs/decisions.md). Findings do not fail the scan; the last step does.
+      - name: Scan
+        run: |
+          uvx --exclude-newer 2026-10-30 semgrep@1.183.0 scan \
+            --config p/default --config p/python --config p/github-actions \
+            --metrics off --sarif-output semgrep.sarif .
+      # GitHub ignores SARIF suppressions, so results marked nosemgrep in the
+      # source are dropped before the upload.
+      - name: Drop results suppressed in source
+        run: |
+          python3 - <<'EOF'
+          import json
+          with open("semgrep.sarif", encoding="utf-8") as handle:
+              report = json.load(handle)
+          if not report["runs"]:
+              raise SystemExit("semgrep.sarif has no runs")
+          for run in report["runs"]:
+              run["results"] = [r for r in run["results"] if not r.get("suppressions")]
+          with open("semgrep.sarif", "w", encoding="utf-8") as handle:
+              json.dump(report, handle)
+          EOF
+      # Skipped on fork pull requests, whose token cannot write security events.
+      - name: Upload SARIF to code scanning
+        if: always() && github.event.pull_request.head.repo.fork != true
+        uses: github/codeql-action/upload-sarif@1fc58d04a4d4374f921bdac573c3811c240f9c26 # v4.39.2
+        with:
+          sarif_file: semgrep.sarif
+          category: semgrep
+      - name: Fail on findings
+        run: |
+          python3 - <<'EOF'
+          import json
+          with open("semgrep.sarif", encoding="utf-8") as handle:
+              report = json.load(handle)
+          if not report["runs"]:
+              raise SystemExit("semgrep.sarif has no runs")
+          count = sum(len(run["results"]) for run in report["runs"])
+          print(f"{count} unsuppressed semgrep finding(s)")
+          raise SystemExit(1 if count else 0)
+          EOF
+
+  zizmor:
+    name: zizmor
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          version: "0.13.1"
+      # Fails on any finding. --exclude-newer is the release date plus one day.
+      - name: Audit the workflows
+        run: uvx --exclude-newer 2026-11-03 zizmor@1.32.0 .github
