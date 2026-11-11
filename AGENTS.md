@@ -28,6 +28,9 @@ package manager and no npm.
 - `CNAME`, `.nojekyll` - unpublished, kept as the branch-publishing fallback
 - `.github/` - CI workflows, Dependabot configuration and `rulesets/` (ruleset
   JSON for the owner to apply; agents never apply it)
+- `.github/SECURITY.md` - how to report a vulnerability privately
+- `.github/pull_request_template.md` - the pull request body: Summary, then
+  Requirements
 - `docs/decisions.md` - one row per plan change, approved exception or new tool
 
 ## CI
