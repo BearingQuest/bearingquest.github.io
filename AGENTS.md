@@ -15,6 +15,7 @@ package manager and no npm.
 - `tests/test_pages_deploy.py` - pytest checks for `site-files.txt` and `pages.yml`
 - `tests/test_hooks.py` - pytest checks for the pre-push hook and the Makefile
 - `tests/test_claude_settings.py` - pytest checks for `.claude/settings.json`
+- `tests/test_workflows.py` - pytest checks for every workflow and the ruleset files
 - `tests/e2e/` - Chromium tests of the built site (`make e2e`), marked `e2e`
 - `tests/_proc.py` - the only place the tests start a process
 - `scripts/build-site.sh` - copies the `site-files.txt` paths into one directory;
@@ -28,6 +29,10 @@ package manager and no npm.
 - `CNAME`, `.nojekyll` - unpublished, kept as the branch-publishing fallback
 - `.github/` - CI workflows, Dependabot configuration and `rulesets/` (ruleset
   JSON for the owner to apply; agents never apply it)
+- `.github/workflows/` - `ci.yml` (the six required checks), `pages.yml`
+  (build and deploy), `pip-audit-daily.yml`, `scorecard.yml`, `claude-review.yml`
+- `.claude/agents/` - the `Explore` and `test-runner` subagents; `.claude/settings.json`
+  holds the permission rules
 - `.github/SECURITY.md` - how to report a vulnerability privately
 - `.github/pull_request_template.md` - the pull request body: Summary, then
   Requirements

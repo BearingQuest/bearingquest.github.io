@@ -131,6 +131,21 @@ def test_only_the_sarif_jobs_can_write_security_events_each_with_a_comment() -> 
     assert comments == len(UPLOAD_JOBS) + 1
 
 
+def test_job_permissions_each_have_a_comment_and_never_repeat_the_workflow_grant() -> None:
+    for path in workflow_paths():
+        workflow = load(path)
+        for name, job in workflow["jobs"].items():
+            if "permissions" in job:
+                assert job["permissions"] != workflow.get("permissions"), (path.name, name)
+        grants = re.findall(
+            r"^ {6}[a-z-]+: (?:read|write|none)(?: #.*)?$",
+            path.read_text(encoding="utf-8"),
+            re.MULTILINE,
+        )
+        for grant in grants:
+            assert re.search(r" # \S", grant), (path.name, grant.strip())
+
+
 def test_sarif_uploads_skip_fork_pull_requests_and_run_after_a_failed_scan() -> None:
     jobs = load(CI)["jobs"]
     uploads = [
@@ -164,7 +179,7 @@ def test_semgrep_is_pinned_registry_only_and_filters_suppressed_results() -> Non
 
 def test_zizmor_is_pinned_and_read_only() -> None:
     job = load(CI)["jobs"]["zizmor"]
-    assert job["permissions"] == {"contents": "read"}
+    assert "permissions" not in job  # inherits the workflow's contents: read
     run = next(step["run"] for step in job["steps"] if "run" in step)
     assert re.fullmatch(
         r"uvx --exclude-newer \d{4}-\d{2}-\d{2} zizmor@\d+\.\d+\.\d+ \.github", run.strip()
@@ -360,7 +375,7 @@ def test_e2e_installs_nothing_and_stays_read_only() -> None:
     job = workflow["jobs"]["e2e"]
     assert job["runs-on"] == "ubuntu-24.04"
     assert 0 < job["timeout-minutes"] <= 10
-    assert job["permissions"] == {"contents": "read"}
+    assert "permissions" not in job  # inherits the workflow's contents: read
     assert workflow["permissions"] == {"contents": "read"}
     for step in job["steps"]:
         run = step.get("run", "")
