@@ -40,6 +40,12 @@ package manager and no npm.
 requests). All five must pass before merge. `pip-audit-daily.yml` also runs the audit on
 `main` every day. Dependabot proposes weekly updates for `uv` and GitHub Actions.
 
+Two workflows are not required checks. `scorecard.yml` runs OpenSSF Scorecard
+weekly and on every push to `main`, publishes to scorecard.dev and uploads SARIF
+to code scanning. `claude-review.yml` has Claude review each pull request with
+inline comments; it skips drafts, fork pull requests and Dependabot, and does not
+run on a pull request that changes the workflow file itself.
+
 `.github/workflows/pages.yml` copies the `site-files.txt` paths into the Pages
 artifact. Its `build` job runs on every pull request and push to `main`; its
 `deploy` job runs only on a push to `main` or a manual run on `main`.

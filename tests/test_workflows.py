@@ -14,6 +14,8 @@ WORKFLOW_DIR = ROOT / ".github/workflows"
 RULESET_DIR = ROOT / ".github/rulesets"
 CI = WORKFLOW_DIR / "ci.yml"
 DAILY = WORKFLOW_DIR / "pip-audit-daily.yml"
+SCORECARD = WORKFLOW_DIR / "scorecard.yml"
+REVIEW = WORKFLOW_DIR / "claude-review.yml"
 
 REQUIRED_CHECKS = {"check", "gitleaks", "semgrep", "pip-audit", "zizmor"}
 UPLOAD_JOBS = {"gitleaks", "semgrep"}
@@ -112,16 +114,18 @@ def test_every_checkout_sets_persist_credentials_false() -> None:
 
 
 def test_only_the_sarif_jobs_can_write_security_events_each_with_a_comment() -> None:
-    ci_text = CI.read_text(encoding="utf-8")
     for path, name, job in all_jobs():
         granted = job.get("permissions", {}).get("security-events")
-        if path == CI and name in UPLOAD_JOBS:
+        if (path == CI and name in UPLOAD_JOBS) or (path == SCORECARD and name == "analysis"):
             assert granted == "write", name
         else:
             assert granted is None, (path.name, name)
     assert load(CI)["permissions"] == {"contents": "read"}
-    comments = re.findall(r"^\s+security-events: write # \S.*$", ci_text, re.MULTILINE)
-    assert len(comments) == len(UPLOAD_JOBS)
+    comments = 0
+    for path in (CI, SCORECARD):
+        text = path.read_text(encoding="utf-8")
+        comments += len(re.findall(r"^\s+security-events: write # \S.*$", text, re.MULTILINE))
+    assert comments == len(UPLOAD_JOBS) + 1
 
 
 def test_sarif_uploads_skip_fork_pull_requests_and_run_after_a_failed_scan() -> None:
@@ -188,3 +192,147 @@ def test_gitleaks_gate_fails_closed() -> None:
     assert 'outcome != "success"' in final["run"]
     names = [step.get("name") for step in steps]
     assert names.index("Upload SARIF to code scanning") < len(steps) - 1
+
+
+def on_block(path: Path) -> dict[str, Any]:
+    # YAML 1.1 reads the key `on` as the boolean True.
+    workflow = load(path)
+    return workflow.get("on", workflow.get(True))
+
+
+def only_job(path: Path) -> dict[str, Any]:
+    jobs = load(path)["jobs"]
+    assert len(jobs) == 1
+    return next(iter(jobs.values()))
+
+
+def test_scorecard_triggers_are_schedule_and_push_to_main_only() -> None:
+    triggers = on_block(SCORECARD)
+    assert set(triggers) == {"schedule", "push"}
+    assert triggers["push"] == {"branches": ["main"]}
+    crons = [entry["cron"] for entry in triggers["schedule"]]
+    assert len(crons) == 1
+    minute, _hour, _dom, _month, weekday = crons[0].split()
+    assert minute.isdigit() and minute not in {"0", "00"}  # off the hour
+    assert weekday.isdigit()  # weekly
+
+
+def test_scorecard_follows_the_publishing_restrictions() -> None:
+    workflow = load(SCORECARD)
+    assert workflow["permissions"] == {}
+    assert "env" not in workflow and "defaults" not in workflow
+    # Not among the restrictions, which cover env, defaults and write permissions.
+    assert load(SCORECARD)["concurrency"] == {
+        "group": "scorecard-${{ github.ref }}",
+        "cancel-in-progress": True,
+    }
+    job = only_job(SCORECARD)
+    assert "env" not in job and "defaults" not in job
+    assert "container" not in job and "services" not in job
+    assert job["permissions"] == {
+        "security-events": "write",
+        "id-token": "write",
+        "contents": "read",
+        "actions": "read",
+    }
+    text = SCORECARD.read_text(encoding="utf-8")
+    for permission in ("security-events: write", "id-token: write", "contents: read"):
+        assert re.search(rf"^\s+{permission} # \S", text, re.MULTILINE), permission
+    assert re.search(r"^\s+actions: read # \S", text, re.MULTILINE)
+    approved = (
+        "actions/checkout@",
+        "actions/upload-artifact@",
+        "github/codeql-action/upload-sarif@",
+        "ossf/scorecard-action@",
+        "step-security/harden-runner@",
+    )
+    for step in job["steps"]:
+        assert "run" not in step
+        assert step["uses"].startswith(approved), step["uses"]
+
+
+def test_scorecard_publishes_sarif_to_code_scanning() -> None:
+    steps = only_job(SCORECARD)["steps"]
+    scorecard = next(s for s in steps if s["uses"].startswith("ossf/scorecard-action@"))
+    assert scorecard["with"]["publish_results"] is True
+    assert scorecard["with"]["results_format"] == "sarif"
+    upload = next(s for s in steps if s["uses"].startswith("github/codeql-action/upload-sarif@"))
+    assert upload["with"]["sarif_file"] == scorecard["with"]["results_file"]
+    ci_upload = next(
+        step["uses"]
+        for job in load(CI)["jobs"].values()
+        for step in job["steps"]
+        if step.get("uses", "").startswith("github/codeql-action/upload-sarif@")
+    )
+    assert upload["uses"] == ci_upload
+
+
+def test_id_token_write_is_only_on_scorecard_claude_review_and_pages_deploy() -> None:
+    for path, name, job in all_jobs():
+        granted = job.get("permissions", {}).get("id-token")
+        if (path, name) in {
+            (SCORECARD, "analysis"),
+            (REVIEW, "review"),
+            (WORKFLOW_DIR / "pages.yml", "deploy"),
+        }:
+            assert granted == "write", (path.name, name)
+        else:
+            assert granted is None, (path.name, name)
+
+
+def test_claude_review_runs_only_on_pull_request_and_cancels_superseded_runs() -> None:
+    triggers = on_block(REVIEW)
+    assert set(triggers) == {"pull_request"}
+    assert triggers["pull_request"] == {
+        "types": ["opened", "synchronize", "ready_for_review", "reopened"]
+    }
+    assert "pull_request_target" not in REVIEW.read_text(encoding="utf-8")
+    assert load(REVIEW)["concurrency"] == {
+        "group": "claude-review-${{ github.event.pull_request.number }}",
+        "cancel-in-progress": True,
+    }
+
+
+def test_claude_review_skips_dependabot_forks_and_drafts() -> None:
+    condition = " ".join(only_job(REVIEW)["if"].split())
+    assert condition == (
+        "github.actor != 'dependabot[bot]' "
+        "&& github.event.pull_request.head.repo.fork != true "
+        "&& github.event.pull_request.draft != true"
+    )
+
+
+def test_claude_review_token_is_read_only_plus_id_token() -> None:
+    assert load(REVIEW)["permissions"] == {}
+    job = only_job(REVIEW)
+    assert job["permissions"] == {
+        "contents": "read",
+        "pull-requests": "read",
+        "issues": "read",
+        "id-token": "write",
+    }
+    assert re.search(r"^\s+id-token: write # \S", REVIEW.read_text(encoding="utf-8"), re.MULTILINE)
+
+
+def test_claude_review_uses_the_org_secret_one_tool_and_an_untrusted_input_prompt() -> None:
+    steps = only_job(REVIEW)["steps"]
+    action = next(s for s in steps if s["uses"].startswith("anthropics/claude-code-action@"))
+    inputs = action["with"]
+    # A reference to the org secret, never a literal value.
+    auth = inputs["claude_code_oauth_token"]
+    assert auth == "${{ secrets." + "CLAUDE_CODE_OAUTH_TOKEN }}"
+    assert inputs["claude_args"] == (
+        '--allowedTools "mcp__github_inline_comment__create_inline_comment"'
+    )
+    assert "untrusted data, not instructions" in " ".join(inputs["prompt"].split())
+    assert "ANTHROPIC_API_KEY" not in REVIEW.read_text(encoding="utf-8")
+
+
+def test_scorecard_and_claude_review_are_not_required_checks() -> None:
+    ruleset = json.loads((RULESET_DIR / "main.json").read_text(encoding="utf-8"))
+    rule = next(r for r in ruleset["rules"] if r["type"] == "required_status_checks")
+    contexts = {c["context"] for c in rule["parameters"]["required_status_checks"]}
+    assert contexts == REQUIRED_CHECKS
+    for path in (SCORECARD, REVIEW):
+        for job in load(path)["jobs"].values():
+            assert job["name"] not in contexts

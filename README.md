@@ -1,5 +1,7 @@
 # Bearing Quest website
 
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/BearingQuest/bearingquest.github.io/badge)](https://scorecard.dev/viewer/?uri=github.com/BearingQuest/bearingquest.github.io)
+
 This repository contains the static website for Bearing Quest, a family of
 personal software projects by Dusten Harrison.
 
