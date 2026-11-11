@@ -15,6 +15,11 @@ on:
 permissions:
   contents: read
 
+# One audit at a time; a manual run never cancels the scheduled one.
+concurrency:
+  group: pip-audit-daily
+  cancel-in-progress: false
+
 jobs:
   pip-audit-daily:
     name: pip-audit (daily)

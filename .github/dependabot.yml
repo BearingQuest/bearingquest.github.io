@@ -3,7 +3,8 @@
 # major bumps open their own pull request so each can be reviewed alone.
 # A 7-day cooldown waits a week after a release before proposing it, so a
 # compromised release has time to be caught and pulled first.
-# Not covered: the gitleaks version and checksum in ci.yml are bumped by hand.
+# Not covered: the gitleaks version and checksum, and the zizmor and semgrep
+# versions, in ci.yml are bumped by hand.
 version: 2
 updates:
   # The uv ecosystem updates pyproject.toml and uv.lock together.
