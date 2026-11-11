@@ -22,17 +22,22 @@ package manager and no npm.
 - `site-files.txt` - the only paths published to the site; every tracked root
   file is either listed there or in the test's not-published list
 - `CNAME`, `.nojekyll` - unpublished, kept as the branch-publishing fallback
-- `.github/` - CI workflows and Dependabot configuration
+- `.github/` - CI workflows, Dependabot configuration and `rulesets/` (ruleset
+  JSON for the owner to apply; agents never apply it)
+- `docs/decisions.md` - one row per plan change, approved exception or new tool
 
 ## CI
 
 `.github/workflows/ci.yml` runs on every pull request and every push to `main`:
 
-- `test` - `uv sync --locked`, then `uv run pytest`
+- `check` - `uv sync --locked`, then `make check` (ruff lint and format, pytest)
 - `gitleaks` - scans the full git history for secrets with a checksum-pinned gitleaks CLI
+- `semgrep` - static analysis with the public registry rules (`p/default`, `p/python`, `p/github-actions`)
 - `pip-audit` - audits every package locked in `uv.lock` for known vulnerabilities
+- `zizmor` - static analysis of the workflows in `.github`
 
-All three must pass before merge. `pip-audit-daily.yml` also runs the audit on
+`gitleaks` and `semgrep` upload SARIF to code scanning (not on fork pull
+requests). All five must pass before merge. `pip-audit-daily.yml` also runs the audit on
 `main` every day. Dependabot proposes weekly updates for `uv` and GitHub Actions.
 
 `.github/workflows/pages.yml` copies the `site-files.txt` paths into the Pages
