@@ -36,6 +36,11 @@ REQUIRED_DENY = [
     "Bash(rm -f -r *)",
     "Bash(rm -Rf *)",
     "Bash(rm -fR *)",
+    # terraform
+    "Bash(terraform apply *)",
+    "Bash(terraform * apply *)",
+    "Bash(terraform destroy *)",
+    "Bash(terraform * destroy *)",
     # repository, Actions, security and Pages settings, secrets, releases
     "Bash(gh api *rulesets*)",
     "Bash(gh api *actions/permissions*)",

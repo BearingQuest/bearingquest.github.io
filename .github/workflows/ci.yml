@@ -44,7 +44,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     permissions:
-      contents: read
+      contents: read # check out the repository; a job block replaces the workflow grant
       security-events: write # upload the SARIF report to code scanning
     # gitleaks/gitleaks-action needs a licence key for organization repos, so
     # this runs the CLI directly. The version and checksum are bumped by hand;
@@ -132,7 +132,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:
-      contents: read
+      contents: read # check out the repository; a job block replaces the workflow grant
       security-events: write # upload the SARIF report to code scanning
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -190,8 +190,6 @@ jobs:
     name: zizmor
     runs-on: ubuntu-24.04
     timeout-minutes: 5
-    permissions:
-      contents: read
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -207,8 +205,6 @@ jobs:
     name: e2e
     runs-on: ubuntu-24.04
     timeout-minutes: 10
-    permissions:
-      contents: read
     # The image ships the browsers and their system packages, so there is no
     # apt step and no browser download. Its tag must match playwright in
     # uv.lock, and the digest pins the exact image; tests/test_workflows.py
