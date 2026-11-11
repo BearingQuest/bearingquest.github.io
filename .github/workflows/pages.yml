@@ -31,34 +31,7 @@ jobs:
         with:
           persist-credentials: false
       - name: Copy the paths in site-files.txt into _site
-        run: |
-          set -euo pipefail
-          mkdir _site
-          while IFS= read -r line || [ -n "$line" ]; do
-            path="${line%%#*}"
-            path="${path#"${path%%[![:space:]]*}"}"
-            path="${path%"${path##*[![:space:]]}"}"
-            [ -n "$path" ] || continue
-            case "$path" in
-              /* | .* | */.*)
-                echo "::error::site-files.txt: absolute, hidden or '..' path: $path"
-                exit 1
-                ;;
-            esac
-            path="${path%/}"
-            if [ -L "$path" ] || [ ! -e "$path" ]; then
-              echo "::error::site-files.txt: missing path or symlink: $path"
-              exit 1
-            fi
-            dest="_site/$(dirname "$path")"
-            mkdir -p "$dest"
-            cp -R "$path" "$dest/"
-          done < site-files.txt
-          if [ -n "$(find _site -type l)" ]; then
-            echo "::error::_site contains a symlink"
-            exit 1
-          fi
-          find _site -type f | sort
+        run: bash scripts/build-site.sh _site
       - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
           path: _site/

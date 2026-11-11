@@ -11,6 +11,7 @@ from _proc import run
 
 ROOT = Path(__file__).resolve().parents[1]
 SITE_FILES = ROOT / "site-files.txt"
+BUILD_SCRIPT = ROOT / "scripts/build-site.sh"
 WORKFLOW_PATH = ROOT / ".github/workflows/pages.yml"
 WORKFLOW_TEXT = WORKFLOW_PATH.read_text(encoding="utf-8")
 WORKFLOW = yaml.safe_load(WORKFLOW_TEXT)
@@ -36,6 +37,7 @@ NOT_PUBLISHED = {
     "Makefile",
     "README.md",
     "pyproject.toml",
+    "scripts",
     "site-files.txt",
     "tests",
     "uv.lock",
@@ -51,6 +53,7 @@ NEVER_PUBLISHED = {
     "README.md",
     "docs",
     "pyproject.toml",
+    "scripts",
     "tests",
     "uv.lock",
 }
@@ -218,12 +221,11 @@ def test_deploys_are_serialized_and_never_cancelled() -> None:
     assert JOBS["build"]["concurrency"]["group"] != "pages"
 
 
-def test_build_copies_only_site_files_and_uploads_the_artifact() -> None:
+def test_build_calls_the_copy_script_and_uploads_the_artifact() -> None:
     steps = JOBS["build"]["steps"]
     copy = [step for step in steps if "run" in step]
     assert len(copy) == 1
-    assert "done < site-files.txt" in copy[0]["run"]
-    assert "set -euo pipefail" in copy[0]["run"]
+    assert copy[0]["run"].strip() == "bash scripts/build-site.sh _site"
     upload = [
         step for step in steps if step.get("uses", "").startswith("actions/upload-pages-artifact@")
     ]
@@ -232,6 +234,30 @@ def test_build_copies_only_site_files_and_uploads_the_artifact() -> None:
     deploy_uses = [step.get("uses", "") for step in JOBS["deploy"]["steps"]]
     assert len(deploy_uses) == 1
     assert deploy_uses[0].startswith("actions/deploy-pages@")
+
+
+def test_build_script_reads_only_site_files_and_fails_closed() -> None:
+    text = BUILD_SCRIPT.read_text(encoding="utf-8")
+    assert text.startswith("#!/bin/bash\n")
+    assert "set -euo pipefail" in text
+    assert "done < site-files.txt" in text
+    assert text.count("cp -R") == 1
+    # Rejects absolute and hidden paths, missing paths and symlinks.
+    for guard in ("/* | .* | */.*)", '[ -L "$path" ] || [ ! -e "$path" ]', 'find "$out" -type l'):
+        assert guard in text, guard
+
+
+def test_build_script_output_is_the_published_set_and_no_repo_files(tmp_path: Path) -> None:
+    out = tmp_path / "site"
+    run(["bash", str(BUILD_SCRIPT), str(out)], cwd=tmp_path, check=True, capture_output=True)
+    built = {path.relative_to(out).as_posix() for path in out.rglob("*") if path.is_file()}
+    assert built == published_files()
+    for name in built:
+        assert PurePosixPath(name).parts[0] not in NEVER_PUBLISHED | {"CNAME", ".nojekyll"}, name
+    # An existing output directory is an error, as the old inline `mkdir _site` was.
+    again = run(["bash", str(BUILD_SCRIPT), str(out)], cwd=tmp_path, capture_output=True)
+    assert again.returncode != 0
+    assert run(["bash", str(BUILD_SCRIPT)], cwd=tmp_path, capture_output=True).returncode == 2
 
 
 def test_jobs_are_pinned_timed_and_on_a_fixed_image() -> None:
