@@ -6,7 +6,8 @@ name: CI
 #   - semgrep:   static analysis with the public registry rules (SARIF to code scanning).
 #   - pip-audit: known vulnerabilities in the versions locked in uv.lock.
 #   - zizmor:    static analysis of the workflows in .github.
-# All five must pass before merge; .github/rulesets/main.json requires them by name.
+#   - e2e:       Chromium tests of the built site, in the pinned Playwright image.
+# All six must pass before merge; .github/rulesets/main.json requires them by name.
 
 on:
   pull_request:
@@ -201,3 +202,32 @@ jobs:
       # Fails on any finding. --exclude-newer is the release date plus one day.
       - name: Audit the workflows
         run: uvx --exclude-newer 2026-11-03 zizmor@1.32.0 .github
+
+  e2e:
+    name: e2e
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    # The image ships the browsers and their system packages, so there is no
+    # apt step and no browser download. Its tag must match playwright in
+    # uv.lock, and the digest pins the exact image; tests/test_workflows.py
+    # checks both. Bumping playwright means bumping the tag and digest in the
+    # same pull request (docs/decisions.md has the steps).
+    container:
+      image: mcr.microsoft.com/playwright/python:v1.64.1-noble@sha256:330d401ae23c905896a0c26c66c36fc971b621519e7b11b435a8328d7bf6e031
+      options: --user 1001
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          version: "0.13.1"
+      # The image has no Python 3.14; uv installs the one named in .python-version.
+      - name: Install dependencies from uv.lock
+        run: uv sync --locked
+      # The image has no make; this is the Makefile's e2e recipe, and
+      # tests/test_workflows.py keeps the two equal.
+      - name: Browser tests (make e2e)
+        run: uv run pytest -m e2e tests/e2e

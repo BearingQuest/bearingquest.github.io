@@ -3,15 +3,21 @@
 SHELL := /bin/bash
 .SHELLFLAGS := -euo pipefail -c
 .DEFAULT_GOAL := help
-.PHONY: help check audit hooks
+.PHONY: help check e2e audit hooks
 
 help: ## List the targets
-	@grep -E '^[a-z]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{ printf "  %-6s %s\n", $$1, $$2 }'
+	@grep -E '^[a-z0-9]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{ printf "  %-6s %s\n", $$1, $$2 }'
 
 check: ## Ruff lint, ruff format check, then pytest
 	uv run ruff check .
 	uv run ruff format --check .
 	uv run pytest
+
+# CI runs this command in the Playwright container, which has no make;
+# tests/test_workflows.py fails if the two drift apart. The tests build the
+# site with scripts/build-site.sh and serve it on 127.0.0.1 themselves.
+e2e: ## Chromium tests against the built site (needs Playwright's browsers)
+	uv run pytest -m e2e tests/e2e
 
 # The same commands as the pip-audit job in .github/workflows/ci.yml;
 # tests/test_hooks.py fails if the two drift apart.

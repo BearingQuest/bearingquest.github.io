@@ -4,7 +4,11 @@
 # A 7-day cooldown waits a week after a release before proposing it, so a
 # compromised release has time to be caught and pulled first.
 # Not covered: the gitleaks version and checksum, and the zizmor and semgrep
-# versions, in ci.yml are bumped by hand.
+# versions, in ci.yml are bumped by hand. So is the Playwright container tag
+# and digest in the e2e job: Dependabot bumps playwright in uv.lock only, so
+# its Playwright pull request fails the tie test in tests/test_workflows.py by
+# design. Bump the lock, the tag and the digest together in one pull request
+# (steps are in docs/decisions.md).
 version: 2
 updates:
   # The uv ecosystem updates pyproject.toml and uv.lock together.
