@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import re
+import tomllib
 from pathlib import Path
 from typing import Any
 
@@ -17,7 +18,7 @@ DAILY = WORKFLOW_DIR / "pip-audit-daily.yml"
 SCORECARD = WORKFLOW_DIR / "scorecard.yml"
 REVIEW = WORKFLOW_DIR / "claude-review.yml"
 
-REQUIRED_CHECKS = {"check", "gitleaks", "semgrep", "pip-audit", "zizmor"}
+REQUIRED_CHECKS = {"check", "gitleaks", "semgrep", "pip-audit", "zizmor", "e2e"}
 UPLOAD_JOBS = {"gitleaks", "semgrep"}
 # The GitHub Actions app, which reports the required checks.
 GITHUB_ACTIONS_APP_ID = 15368
@@ -44,7 +45,7 @@ def all_steps() -> list[tuple[Path, str, dict[str, Any]]]:
     return [(path, name, step) for path, name, job in all_jobs() for step in job["steps"]]
 
 
-def test_ci_has_exactly_the_five_required_jobs() -> None:
+def test_ci_has_exactly_the_six_required_jobs() -> None:
     jobs = load(CI)["jobs"]
     assert set(jobs) == REQUIRED_CHECKS
     for key, job in jobs.items():
@@ -61,6 +62,8 @@ def test_required_checks_in_main_ruleset_match_ci_jobs() -> None:
     assert set(contexts) == REQUIRED_CHECKS
     assert set(contexts) <= job_names
     assert all(check["integration_id"] == GITHUB_ACTIONS_APP_ID for check in checks)
+    # A branch must be up to date with main before it merges (baseline change, 11 Nov).
+    assert rule["parameters"]["strict_required_status_checks_policy"] is True
 
 
 def test_rulesets_have_the_agreed_shape() -> None:
@@ -336,3 +339,48 @@ def test_scorecard_and_claude_review_are_not_required_checks() -> None:
     for path in (SCORECARD, REVIEW):
         for job in load(path)["jobs"].values():
             assert job["name"] not in contexts
+
+
+def locked_version(package: str) -> str:
+    lock = tomllib.loads((ROOT / "uv.lock").read_text(encoding="utf-8"))
+    (version,) = [p["version"] for p in lock["package"] if p["name"] == package]
+    return str(version)
+
+
+def test_e2e_runs_in_the_playwright_image_matching_the_lock_pinned_by_digest() -> None:
+    # The image ships the browsers for one Playwright release; a mismatch fails at launch.
+    container = load(CI)["jobs"]["e2e"]["container"]
+    tag = re.escape(f"mcr.microsoft.com/playwright/python:v{locked_version('playwright')}-noble")
+    assert re.fullmatch(tag + r"@sha256:[0-9a-f]{64}", container["image"]), container["image"]
+    assert container["options"] == "--user 1001"
+
+
+def test_e2e_installs_nothing_and_stays_read_only() -> None:
+    workflow = load(CI)
+    job = workflow["jobs"]["e2e"]
+    assert job["runs-on"] == "ubuntu-24.04"
+    assert 0 < job["timeout-minutes"] <= 10
+    assert job["permissions"] == {"contents": "read"}
+    assert workflow["permissions"] == {"contents": "read"}
+    for step in job["steps"]:
+        run = step.get("run", "")
+        assert "playwright install" not in run, step.get("name")
+        assert "apt" not in run.split(), step.get("name")
+        assert "apt-get" not in run, step.get("name")
+        assert "actions/cache" not in step.get("uses", ""), step.get("uses")
+
+
+def test_e2e_command_in_ci_is_the_makefile_recipe() -> None:
+    makefile = (ROOT / "Makefile").read_text(encoding="utf-8")
+    match = re.search(r"^e2e:.*\n((?:\t.*\n)+)", makefile, re.MULTILINE)
+    assert match, "Makefile has no e2e recipe"
+    recipe = "\n".join(line.removeprefix("\t") for line in match.group(1).splitlines())
+    (step,) = [s for s in load(CI)["jobs"]["e2e"]["steps"] if "pytest" in s.get("run", "")]
+    assert step["run"].strip() == recipe
+
+
+def test_playwright_and_its_pytest_plugin_are_locked_dev_dependencies() -> None:
+    pyproject = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
+    dev = pyproject["dependency-groups"]["dev"]
+    assert f"playwright=={locked_version('playwright')}" in dev
+    assert f"pytest-playwright=={locked_version('pytest-playwright')}" in dev

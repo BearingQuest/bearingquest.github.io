@@ -15,9 +15,13 @@ package manager and no npm.
 - `tests/test_pages_deploy.py` - pytest checks for `site-files.txt` and `pages.yml`
 - `tests/test_hooks.py` - pytest checks for the pre-push hook and the Makefile
 - `tests/test_claude_settings.py` - pytest checks for `.claude/settings.json`
+- `tests/e2e/` - Chromium tests of the built site (`make e2e`), marked `e2e`
 - `tests/_proc.py` - the only place the tests start a process
-- `Makefile` - `make check` (ruff and pytest), `make audit` (pip-audit, as in
-  CI), `make hooks` (installs `.githooks/`); `make help` lists them
+- `scripts/build-site.sh` - copies the `site-files.txt` paths into one directory;
+  `pages.yml` and the e2e tests both run it
+- `Makefile` - `make check` (ruff and pytest), `make e2e` (browser tests),
+  `make audit` (pip-audit, as in CI), `make hooks` (installs `.githooks/`);
+  `make help` lists them
 - `.githooks/pre-push` - runs gitleaks on the commits being pushed
 - `site-files.txt` - the only paths published to the site; every tracked root
   file is either listed there or in the test's not-published list
@@ -35,9 +39,10 @@ package manager and no npm.
 - `semgrep` - static analysis with the public registry rules (`p/default`, `p/python`, `p/github-actions`)
 - `pip-audit` - audits every package locked in `uv.lock` for known vulnerabilities
 - `zizmor` - static analysis of the workflows in `.github`
+- `e2e` - `make e2e`'s command in the digest-pinned Playwright container
 
 `gitleaks` and `semgrep` upload SARIF to code scanning (not on fork pull
-requests). All five must pass before merge. `pip-audit-daily.yml` also runs the audit on
+requests). All six must pass before merge. `pip-audit-daily.yml` also runs the audit on
 `main` every day. Dependabot proposes weekly updates for `uv` and GitHub Actions.
 
 Two workflows are not required checks. `scorecard.yml` runs OpenSSF Scorecard
