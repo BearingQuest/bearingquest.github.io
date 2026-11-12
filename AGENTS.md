@@ -31,8 +31,7 @@ package manager and no npm.
   JSON for the owner to apply; agents never apply it)
 - `.github/workflows/` - `ci.yml` (the six required checks), `pages.yml`
   (build and deploy), `pip-audit-daily.yml`, `scorecard.yml`, `claude-review.yml`
-- `.claude/agents/` - the `Explore` and `test-runner` subagents; `.claude/settings.json`
-  holds the permission rules
+- `.claude/settings.json` - the permission rules. The `Explore` and `test-runner` subagents are user-level, in `~/.claude/agents/`.
 - `.github/SECURITY.md` - how to report a vulnerability privately
 - `.github/pull_request_template.md` - the pull request body: Summary, then
   Requirements
