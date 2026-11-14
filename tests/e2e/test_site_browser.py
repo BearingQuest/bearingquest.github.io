@@ -175,3 +175,41 @@ def test_no_request_leaves_the_local_origin(
     assert urls
     outside = [u for u in urls if not u.startswith(base_url + "/")]
     assert outside == []
+
+
+@pytest.mark.parametrize("theme", ["Light", "Dark"])
+def test_resume_has_no_horizontal_scroll_at_320px(page: Page, base_url: str, theme: str) -> None:
+    page.set_viewport_size({"width": 320, "height": 800})
+    page.goto(base_url + "/resume.html")
+    choose_theme(page, theme)
+    assert theme_attribute(page) == theme.lower()
+    page.wait_for_load_state("networkidle")
+    measure = "[document.documentElement.scrollWidth, document.documentElement.clientWidth]"
+    closed = page.evaluate(measure)
+    assert closed[0] <= closed[1], closed
+    # Open every disclosure too: the hidden lists are the widest content on the page.
+    page.evaluate("document.querySelectorAll('details').forEach((d) => { d.open = true; })")
+    opened = page.evaluate(measure)
+    assert opened[0] <= opened[1], opened
+
+
+def test_resume_details_open_and_close_from_the_keyboard(page: Page, base_url: str) -> None:
+    page.goto(base_url + "/resume.html")
+    summaries = page.locator("details > summary")
+    count = summaries.count()
+    assert count == 5
+    for index in range(count):
+        summary = summaries.nth(index)
+        details = page.locator("details").nth(index)
+        assert details.evaluate("(d) => d.open") is False
+        for _ in range(200):
+            page.keyboard.press("Tab")
+            if summary.evaluate("(el) => el === document.activeElement"):
+                break
+        else:
+            pytest.fail(f"Tab never reached summary {index}")
+        assert summary.evaluate("(el) => getComputedStyle(el).outlineStyle") != "none"
+        page.keyboard.press("Enter")
+        assert details.evaluate("(d) => d.open") is True
+        page.keyboard.press("Enter")
+        assert details.evaluate("(d) => d.open") is False

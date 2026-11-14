@@ -383,11 +383,6 @@ main {
   font-size: clamp(1.15rem, 3vw, 1.45rem);
 }
 
-.todo {
-  font-family: "IBM Plex Mono", ui-monospace, monospace;
-  font-size: 0.9em;
-}
-
 .muted,
 .updated {
   color: var(--muted);
@@ -446,6 +441,10 @@ main {
   margin-bottom: 1.5rem;
 }
 
+.project-card p:last-child {
+  margin-bottom: 0;
+}
+
 .badge {
   padding: 0.25rem 0.65rem;
   border: 1px solid var(--control);
@@ -478,6 +477,10 @@ main {
   margin-bottom: 0;
 }
 
+.about-links {
+  overflow-wrap: anywhere;
+}
+
 .resume section + section {
   padding-top: 2.25rem;
   border-top: 1px solid var(--border);
@@ -488,10 +491,100 @@ main {
   margin-bottom: 0;
 }
 
-.resume-contact {
-  padding-top: 2.25rem;
-  border-top: 1px solid var(--border);
-  margin: 2.25rem 0 0;
+.subtitle {
+  max-width: 38rem;
+  color: var(--muted);
+  font-size: clamp(1.05rem, 3vw, 1.3rem);
+}
+
+.resume-contact-line {
+  overflow-wrap: anywhere;
+}
+
+.job + .job {
+  margin-top: 2rem;
+}
+
+.job h3 {
+  margin-bottom: 0.25rem;
+  overflow-wrap: anywhere;
+}
+
+.resume h4,
+.resume h5 {
+  margin-bottom: 0.25rem;
+  color: var(--heading);
+  font-weight: 700;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.resume h4 {
+  margin-top: 1.5rem;
+  font-size: 1.1rem;
+}
+
+.resume h5 {
+  margin-top: 1.25rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.role-meta {
+  margin-bottom: 0.75rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.resume ul {
+  padding-left: 1.25rem;
+  margin: 0 0 1rem;
+}
+
+.resume li {
+  margin-bottom: 0.5rem;
+  overflow-wrap: anywhere;
+}
+
+.resume details {
+  margin-bottom: 1rem;
+}
+
+.resume summary {
+  display: flex;
+  min-height: 2.75rem;
+  align-items: center;
+  color: var(--accent);
+  cursor: pointer;
+  font-weight: 650;
+  list-style: none;
+}
+
+.resume summary::-webkit-details-marker {
+  display: none;
+}
+
+.resume summary::before {
+  display: inline-block;
+  flex: none;
+  border-color: transparent transparent transparent currentcolor;
+  border-style: solid;
+  border-width: 0.35em 0 0.35em 0.55em;
+  margin-right: 0.65rem;
+  content: "";
+}
+
+.resume details[open] > summary::before {
+  border-color: currentcolor transparent transparent;
+  border-width: 0.55em 0.35em 0;
+}
+
+.resume summary:focus-visible {
+  border-radius: 0.125rem;
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
 }
 
 .not-found {
