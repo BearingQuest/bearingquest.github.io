@@ -1,0 +1,26 @@
+{
+  "name": "Bearing Quest site layer",
+  "note": "Color tokens the site uses that are not in tokens.json. Same shape as tokens.json's color tokens. See docs/design.md.",
+  "color": {
+    "themes": [
+      {
+        "id": "light",
+        "name": "Light"
+      },
+      {
+        "id": "dark",
+        "name": "Dark"
+      }
+    ],
+    "tokens": [
+      {
+        "name": "risk-accent",
+        "value": {
+          "light": "#006A7A",
+          "dark": "#4FD6E8"
+        },
+        "usage": "Risk Trainer card edge. Risk Trainer's Blueprint accent, kept by its light-path decision (29 Oct 2026). Decoration only."
+      }
+    ]
+  }
+}

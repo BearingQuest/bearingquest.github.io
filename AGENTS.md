@@ -12,6 +12,8 @@ package manager and no npm.
 - `assets/js/theme.js` - the only script (theme switch)
 - `assets/img/` - images, including the Bearing Quest mark and lockup SVGs
 - `tests/test_site.py` - pytest checks for the site
+- `tests/test_design.py` - pytest checks that the CSS tokens, logos, screens and card edges
+  match `docs/design.md` and `docs/design/`
 - `tests/test_pages_deploy.py` - pytest checks for `site-files.txt` and `pages.yml`
 - `tests/test_hooks.py` - pytest checks for the pre-push hook and the Makefile
 - `tests/test_claude_settings.py` - pytest checks for `.claude/settings.json`
@@ -36,6 +38,10 @@ package manager and no npm.
 - `.github/pull_request_template.md` - the pull request body: Summary, then
   Requirements
 - `docs/decisions.md` - one row per plan change, approved exception or new tool
+- `docs/PRD.md` - the numbered product requirements (R1-R16)
+- `docs/design.md` - how the site uses the design system; UI work follows it
+- `docs/design/` - `tokens.json`, `site-layer.json`, logos, accepted screens and the
+  reference stylesheet
 
 ## CI
 
@@ -72,10 +78,12 @@ artifact. Its `build` job runs on every pull request and push to `main`; its
 - Bearing Quest is the name of a family of projects. Never present it as a
   company, firm, studio or team.
 - Never put a phone number, street address or email address in any page.
+- UI work follows docs/design.md.
 - Run `make check` before opening any PR.
 - Work on a branch. Never push to `main` and never merge.
 - When you open a pull request, fill in every section of
-  `.github/pull_request_template.md`, in the same order, in the PR body.
+  `.github/pull_request_template.md`, in the same order, in the PR body. Cite PRD IDs
+  (R1-R16, from `docs/PRD.md`) in the template's Requirements line.
 
 ## Human gates: agents never do these
 

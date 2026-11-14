@@ -12,6 +12,8 @@
   --error: #b42318;
   --risk-accent: #006a7a;
   --vector-accent: #1f68a8;
+  --primary: #1b365d;
+  --dnx-accent: #8a3b7a;
   color-scheme: light;
 }
 
@@ -30,6 +32,8 @@
     --error: #ff8a80;
     --risk-accent: #4fd6e8;
     --vector-accent: #7db8f0;
+    --primary: #c9d3df;
+    --dnx-accent: #e3a1d6;
     color-scheme: dark;
   }
 }
@@ -48,6 +52,8 @@
   --error: #b42318;
   --risk-accent: #006a7a;
   --vector-accent: #1f68a8;
+  --primary: #1b365d;
+  --dnx-accent: #8a3b7a;
   color-scheme: light;
 }
 
@@ -65,6 +71,8 @@
   --error: #ff8a80;
   --risk-accent: #4fd6e8;
   --vector-accent: #7db8f0;
+  --primary: #c9d3df;
+  --dnx-accent: #e3a1d6;
   color-scheme: dark;
 }
 
@@ -419,12 +427,16 @@ main {
   --card-accent: var(--risk-accent);
 }
 
+.project-card--register {
+  --card-accent: var(--primary);
+}
+
 .project-card--vector {
   --card-accent: var(--vector-accent);
 }
 
 .project-card--dossier {
-  --card-accent: var(--muted);
+  --card-accent: var(--dnx-accent);
 }
 
 .card-heading {
