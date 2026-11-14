@@ -39,28 +39,172 @@
 
     <main id="main">
       <section class="hero hero--compact" aria-labelledby="page-title">
-        <p class="eyebrow">Resume</p>
-        <h1 id="page-title">Dusten Harrison</h1>
-        <p class="updated">Last updated: <span class="todo">[TODO: date]</span></p>
+        <h1 id="page-title">Dusten Harrison, CISSP</h1>
+        <p class="subtitle">Senior Engineering Manager · SRE · Platform Engineering · Cloud Infrastructure · DevOps · Cybersecurity</p>
+        <p class="resume-contact-line">Austin, Texas · <a href="https://www.linkedin.com/in/dustenharrison" rel="noopener noreferrer">linkedin.com/in/dustenharrison <span aria-hidden="true">↗</span></a> · <a href="https://x.com/Dusten_atx" rel="noopener noreferrer">x.com/Dusten_atx <span aria-hidden="true">↗</span></a></p>
+        <p class="updated">Last updated: 14 Nov 2026</p>
       </section>
       <article class="resume">
         <section aria-labelledby="summary-title">
           <h2 id="summary-title">Summary</h2>
-          <p class="todo">[TODO: summary from Dusten’s current resume]</p>
+          <p>Engineering leader with 20+ years across site reliability, platform engineering, cloud infrastructure, DevOps and cybersecurity. Has run distributed teams remotely for most of that career, owned a ~$3M annual SRE and platform budget, and paired cost discipline with architecture and executive communication. Works as an AI-augmented practitioner: Python (AI-assisted) and career-long Linux and Bash.</p>
         </section>
         <section aria-labelledby="experience-title">
           <h2 id="experience-title">Experience</h2>
-          <p class="todo">[TODO: experience from Dusten’s current resume]</p>
+          <div class="job">
+            <h3>Cirrascale — Senior Manager, Quality &amp; Compliance</h3>
+            <p class="role-meta">Austin, TX · Nov 2026–present</p>
+          </div>
+          <div class="job">
+            <h3>Docusign</h3>
+            <p class="role-meta">Feb 2022–Oct 2025</p>
+            <h4>Senior Manager, Vulnerability &amp; Attack Surface Management</h4>
+            <p class="role-meta">Feb–Oct 2025</p>
+            <ul>
+              <li>Led a six-person vulnerability and attack surface management team and presented its metrics directly to the CISO.</li>
+              <li>Drove a 90% reduction in out-of-SLA critical vulnerabilities within 30 days.</li>
+              <li>Managed and drove improvements to the team-built security dashboard consolidating Wiz, Tenable and Microsoft Defender findings for remediation teams and leadership.</li>
+            </ul>
+            <details>
+              <summary>More detail</summary>
+              <ul>
+                <li>Guided the design of a Jira-driven framework that routed remediation tickets to the owners of the affected component; taken through testing.</li>
+                <li>Partnered with Risk and GRC so an IL4 environment met its compliance requirements, including input to POA&amp;M data.</li>
+                <li>Initiated NIST CSF 2.0 scanning across the estate, alongside existing CIS scanning.</li>
+              </ul>
+            </details>
+            <h4>Senior Engineering Manager, SRE &amp; Platform Engineering</h4>
+            <p class="role-meta">Feb 2022–Feb 2025</p>
+            <ul>
+              <li>Owned reliability, platform and infrastructure for the Notary offering: five direct reports, a ~30-person partner development organization and a ~$3M annual budget.</li>
+              <li>Integrated Wiz with AWS GuardDuty and Slack for real-time critical-alert notification on the Notary offering.</li>
+              <li>Cut the offering's monthly AWS cost 74% ($27K to ~$7K) while evaluating a multi-region high-availability architecture, with cost modeling presented to management.</li>
+              <li>Cut weekly support load ~88% (~160 to ~20 hours) through automation and operational redesign.</li>
+              <li>Drove a 600-item vulnerability backlog to zero over six months, across application code and the infrastructure the team owned.</li>
+              <li>Remediated 800+ CIS misconfigurations to zero in two months.</li>
+              <li>Automated ongoing misconfiguration and vulnerability detection with GitHub Actions and GitHub Advanced Security, including policy gates for noncompliant uploads.</li>
+              <li>Automated PCI quarterly business review reporting from ~8 hours to ~10 seconds using Google Gemini.</li>
+              <li>Took on the Operations Center (US, then global; ~15,000 on-premises servers): cut weekly alert volume from ~15,000 to ~4,000, took asset-inventory coverage from ~60% to 100%, and restructured staffing to keep 24/7 coverage.</li>
+              <li>Served as a volunteer Senior Incident Commander for Sev 0–2 incidents (2023–2024); lessons from a Sev 0 site failover drove disaster-recovery testing improvements adopted across all sites.</li>
+            </ul>
+            <details>
+              <summary>More detail</summary>
+              <h5>Notary offering</h5>
+              <ul>
+                <li>Defined RTO and RPO targets for the Notary offering, used in its internal reliability requirements and in regulatory filings to state authorities.</li>
+                <li>Ran full-stack Datadog observability (logs, metrics, distributed tracing, Real User Monitoring and synthetic monitoring) and used its utilization data to right-size AWS instances.</li>
+                <li>Led a hands-on evaluation of a proposed AWS-to-Azure migration; schema-mapping analysis showed the move from Aurora PostgreSQL to a document-oriented database was the central risk.</li>
+                <li>Took on vendor management for the offering's software and infrastructure and simplified the stack: Fastpass replaced by an internally hosted Delinea deployment, Cloudflare by AWS CloudFront with custom AWS WAF rules, and logz.io by Datadog.</li>
+                <li>Partnered with the Okta team to extend Okta SSO to a multi-OU AWS environment and GitHub.</li>
+                <li>Managed the SDET team for six months (May–Nov 2022), a first-time scope, until SDETs moved into the engineering organization.</li>
+              </ul>
+              <h5>Operations Center</h5>
+              <ul>
+                <li>Cut weekly alert volume by removing pages with no SOP, routing alerts to the teams that owned them, removing duplicates and retuning noisy alerts, with senior SRE engineers.</li>
+                <li>Replaced AlertOps with PagerDuty.</li>
+                <li>Redesigned password resets from a live video verification call to Slack-to-Jira intake, with the new password delivered in a Docusign envelope that required government-ID and liveness verification; took the design through the formal threat-analysis process.</li>
+                <li>Added contractor staffing in two new European countries to keep the Operations Center staffed 24/7.</li>
+                <li>Took over a stalled asset-inventory deployment and brought it to 100% coverage of ~15,000 servers across 15 sites, supplying the accurate inventory that PCI DSS, FedRAMP, IL4 and StateRAMP compliance required.</li>
+              </ul>
+              <h5>Incident command</h5>
+              <ul>
+                <li>Created 20+ AI-assisted Python scripts (GitHub Copilot) for PagerDuty licensing and utilization visibility, multi-level escalation resilience and cost-to-serve reporting.</li>
+                <li>Led a staging evaluation of FireHydrant's AI capabilities with the CISO's organization; halted when the tool was put on a sunset path.</li>
+              </ul>
+            </details>
+          </div>
+          <div class="job">
+            <h3>Forcepoint — Senior Engineering Manager, Cloud, Delivery &amp; Platform</h3>
+            <p class="role-meta">Dec 2018–Oct 2021</p>
+            <ul>
+              <li>Grew an inherited team of two to 12 across the US and UK.</li>
+              <li>Directed five Terraform-based AWS migration and greenfield projects built to AWS Well-Architected standards, with team-authored Terraform that he directed and reviewed: Jira and Confluence, Artifactory, Jenkins and GitHub Enterprise moved to AWS; SonarQube and IriusRisk stood up new.</li>
+              <li>Delivered ~$500K in annual savings from the AWS migrations, mainly by moving Jira and Confluence off third-party managed hosting.</li>
+              <li>Maintained PCI and SOC 2 compliance across all managed systems.</li>
+              <li>Moved the team from Scrum to Kanban and built monthly forecasting reports for leadership.</li>
+            </ul>
+            <details>
+              <summary>More detail</summary>
+              <ul>
+                <li>Extended SonarQube with custom dashboards and, with Engineering Management, moved toward build-blocking quality gates.</li>
+                <li>Integrated Okta SSO across Slack, SonarQube, Jira, Confluence and GitHub with the Okta admin team.</li>
+                <li>Performed a FedRAMP gap analysis.</li>
+              </ul>
+            </details>
+          </div>
+          <div class="job">
+            <h3>Canonical — Americas Support Manager</h3>
+            <p class="role-meta">Jul 2017–Dec 2018</p>
+            <ul>
+              <li>Led a 15-person team of Technical Account Managers and L2/L3 support engineers serving enterprise accounts.</li>
+              <li>Resolved an at-scale customer escalation (3,000+ servers) and negotiated a license-compliance expansion after a 10x under-licensing gap was found, retaining the account.</li>
+              <li>Designed a mini-TAM program as a career-growth track for L2 engineers.</li>
+              <li>Worked with Coalfire on FedRAMP operational compliance analysis for a key client engagement.</li>
+            </ul>
+            <details>
+              <summary>More detail</summary>
+              <ul>
+                <li>Joined pre- and post-sales calls with inside sales to prevent overselling and educate customers on offerings.</li>
+                <li>Drove global adoption of per-ticket time tracking, giving cost-to-support visibility per account.</li>
+                <li>Managed Canonical's side of the joint Microsoft–Canonical support agreement for SQL Server on Ubuntu.</li>
+              </ul>
+            </details>
+          </div>
+          <div class="job">
+            <h3>IBM</h3>
+            <p class="role-meta">Apr 2003–May 2016</p>
+            <h4>Technology Manager, Cloud Delivery Architecture — SAP Cloud Services</h4>
+            <p class="role-meta">May 2015–May 2016</p>
+            <ul>
+              <li>Led a four-architect team; generated $3.6M+ in annual cost savings by restructuring and decommissioning redundant infrastructure.</li>
+              <li>Maintained zero unplanned downtime while serving 50+ enterprise SAP Cloud clients.</li>
+            </ul>
+            <h4>Technology Manager, Cloud Automated Modular Management</h4>
+            <p class="role-meta">Aug 2014–Apr 2015</p>
+            <ul>
+              <li>Delivered $1M+ in annual operational savings; managed the Jenkins team and CI/CD pipelines; introduced Docker and SaltStack.</li>
+            </ul>
+            <h4>Senior Operations Manager, Global Process Services</h4>
+            <p class="role-meta">Sep 2006–Jul 2014</p>
+            <ul>
+              <li>Grew from a two-person launch team to lead a ~60-person global organization across the US, China, Costa Rica, India and Poland.</li>
+              <li>Sustained 99.8–100% monthly availability against a 99.5% SLO on HR and Finance &amp; Accounting production systems.</li>
+              <li>Led a migration to virtualized infrastructure generating $1M+ in annual cost efficiencies.</li>
+            </ul>
+            <h4>IT Manager, Helpdesk Tools</h4>
+            <p class="role-meta">Apr 2003–Aug 2006</p>
+            <ul>
+              <li>Delivered $500K+ in annual cost savings by creating an enterprise knowledge-management system.</li>
+            </ul>
+            <details>
+              <summary>More detail</summary>
+              <ul>
+                <li>SAP Cloud Services: owned capacity forecasting for 50+ dedicated bare-metal SAP servers.</li>
+                <li>Cloud Automated Modular Management: created the ITIL-based change management process, built into the team's existing agile tooling; as sole technical owner, migrated a public-sector client's website from a datacenter being shut down to IBM Softlayer.</li>
+                <li>Global Process Services: met IBM's mandated 10% annual cost-reduction target every year from about 2010 to 2014; designed a cost-optimized disaster recovery architecture that ran on existing test infrastructure; led a site-to-site failover of an enterprise CRM platform during a major incident; became the organization's go-to ISO 27001 expert.</li>
+                <li>Helpdesk Tools: led the consolidation of nine incident, problem and change tools onto IBM's platform (six completed before the client brought the work back in house); $70K in sustained annual savings from automation.</li>
+                <li>Volunteer trainer (2014–2016): delivered IBM's company-wide New Hire Training about every two months, full-day sessions for 30–60 attendees.</li>
+              </ul>
+            </details>
+          </div>
+          <div class="job">
+            <h3>Earlier career</h3>
+            <p>IT leadership roles at JPMorgan Chase, including Vice President, IT Management: led a 16-person team across the US, UK and Singapore running the bank's nine incident, problem and change platforms and its helpdesk tooling; served on the team evaluating outsourcing proposals; ran the Houston data center (Windows NT, SQL Server, Tivoli); built a remote foreign-exchange trading solution for branches; started in IT operations supporting the trading floor and executive offices.</p>
+          </div>
         </section>
-        <section aria-labelledby="education-title">
-          <h2 id="education-title">Education</h2>
-          <p class="todo">[TODO: education from Dusten’s current resume]</p>
+        <section aria-labelledby="projects-title">
+          <h2 id="projects-title">Projects</h2>
+          <ul>
+            <li>QuestVector (<a href="https://github.com/BearingQuest/questvector" rel="noopener noreferrer">github.com/BearingQuest/questvector <span aria-hidden="true">↗</span></a>) — Specified and directed a local-first career-management CLI: encrypted vault, pluggable LLM backends, a local model chosen by measured invented-fact rates, and a provenance-attested GitHub release; proof of concept.</li>
+            <li>QuestCast (<a href="https://github.com/BearingQuest/questcast" rel="noopener noreferrer">github.com/BearingQuest/questcast <span aria-hidden="true">↗</span></a>) — Specified and directed a content-curation tool with draft-only human review, acceptance tests frozen in CI and drafted by a second AI vendor, and required secret, static, and dependency scans.</li>
+            <li>Risk Trainer (<a href="https://github.com/BearingQuest/risk-trainer" rel="noopener noreferrer">github.com/BearingQuest/risk-trainer <span aria-hidden="true">↗</span></a>) — Specified and directed a hosted security risk-prioritization trainer and an MCP authoring server with no approval tool, keeping publication behind a human gate.</li>
+            <li>Bearing Quest — Owner of this personal project family and the BearingQuest GitHub organization.</li>
+          </ul>
         </section>
-        <section aria-labelledby="skills-title">
-          <h2 id="skills-title">Skills</h2>
-          <p class="todo">[TODO: skills from Dusten’s current resume]</p>
+        <section aria-labelledby="certifications-title">
+          <h2 id="certifications-title">Certifications</h2>
+          <p>CISSP (ISC2) · ITIL v3 Foundation (EXIN) · ICAgile Certified Professional — Foundations of DevOps · PagerDuty Incident Responder</p>
         </section>
-        <p class="resume-contact">For professional contact, visit <a href="https://www.linkedin.com/in/dustenharrison" rel="noopener noreferrer">Dusten’s LinkedIn profile <span aria-hidden="true">↗</span></a>.</p>
       </article>
     </main>
 
@@ -68,7 +212,7 @@
       <div class="footer-inner">
         <div>
           <p class="wordmark">Bearing Quest</p>
-          <p>Code MIT licensed · Site text © <span class="todo">[TODO: year]</span> Dusten Harrison, all rights reserved.</p>
+          <p>Code MIT licensed · Site text © 2026 Dusten Harrison, all rights reserved.</p>
         </div>
         <nav aria-label="External links">
           <a href="https://github.com/BearingQuest" rel="noopener noreferrer">GitHub <span aria-hidden="true">↗</span></a>
