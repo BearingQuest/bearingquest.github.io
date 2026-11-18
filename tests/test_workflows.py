@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import re
+import shlex
 import tomllib
 from pathlib import Path
 from typing import Any
@@ -46,6 +47,7 @@ def all_steps() -> list[tuple[Path, str, dict[str, Any]]]:
 
 
 def test_ci_has_exactly_the_six_required_jobs() -> None:
+    """R16: ci.yml runs the six required checks."""
     jobs = load(CI)["jobs"]
     assert set(jobs) == REQUIRED_CHECKS
     for key, job in jobs.items():
@@ -53,6 +55,7 @@ def test_ci_has_exactly_the_six_required_jobs() -> None:
 
 
 def test_required_checks_in_main_ruleset_match_ci_jobs() -> None:
+    """R16: the main ruleset requires exactly the CI jobs."""
     ruleset = json.loads((RULESET_DIR / "main.json").read_text(encoding="utf-8"))
     rule = next(r for r in ruleset["rules"] if r["type"] == "required_status_checks")
     checks = rule["parameters"]["required_status_checks"]
@@ -67,6 +70,7 @@ def test_required_checks_in_main_ruleset_match_ci_jobs() -> None:
 
 
 def test_rulesets_have_the_agreed_shape() -> None:
+    """R16: main takes only reviewed pull requests with passing checks, with no bypass."""
     main = json.loads((RULESET_DIR / "main.json").read_text(encoding="utf-8"))
     tags = json.loads((RULESET_DIR / "release-tags.json").read_text(encoding="utf-8"))
     assert (main["target"], main["enforcement"], main["bypass_actors"]) == ("branch", "active", [])
@@ -339,11 +343,26 @@ def test_claude_review_uses_the_org_secret_one_tool_and_an_untrusted_input_promp
     # A reference to the org secret, never a literal value.
     auth = inputs["claude_code_oauth_token"]
     assert auth == "${{ secrets." + "CLAUDE_CODE_OAUTH_TOKEN }}"
-    assert inputs["claude_args"] == (
-        '--allowedTools "mcp__github_inline_comment__create_inline_comment"'
-    )
     assert "untrusted data, not instructions" in " ".join(inputs["prompt"].split())
     assert "ANTHROPIC_API_KEY" not in REVIEW.read_text(encoding="utf-8")
+
+
+def test_claude_review_turns_the_sandbox_off_and_keeps_one_tool() -> None:
+    steps = only_job(REVIEW)["steps"]
+    action = next(s for s in steps if s["uses"].startswith("anthropics/claude-code-action@"))
+    args = shlex.split(action["with"]["claude_args"])
+    # The runner cannot start the sandbox; a command-line setting beats the project file.
+    assert args.count("--settings") == 1
+    settings = json.loads(args[args.index("--settings") + 1])
+    assert settings == {"sandbox": {"enabled": False}}
+    # Safe only because the reviewer has no Bash: the one tool is the inline comment.
+    assert args.count("--allowedTools") == 1
+    assert args[args.index("--allowedTools") + 1 :] == [
+        "mcp__github_inline_comment__create_inline_comment"
+    ]
+    assert args.count("--settings") + args.count("--allowedTools") == len(
+        [a for a in args if a.startswith("--")]
+    )
 
 
 def test_scorecard_and_claude_review_are_not_required_checks() -> None:
