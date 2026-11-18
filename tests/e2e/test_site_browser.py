@@ -44,6 +44,7 @@ def choose_theme(page: Page, name: str) -> None:
 def test_page_loads_without_console_errors_or_csp_violations(
     page: Page, base_url: str, path: str, status: int
 ) -> None:
+    """R15: no page load raises a CSP violation."""
     errors: list[str] = []
     document_url = base_url + path
 
@@ -71,6 +72,7 @@ def test_page_loads_without_console_errors_or_csp_violations(
 def test_tab_reaches_the_theme_switch_and_every_nav_link_with_a_focus_indicator(
     page: Page, base_url: str, path: str, status: int
 ) -> None:
+    """R14: keyboard reaches every control with a visible focus indicator."""
     page.goto(base_url + path)
     focused = []
     for _ in range(25):
@@ -104,6 +106,7 @@ def test_tab_reaches_the_theme_switch_and_every_nav_link_with_a_focus_indicator(
 def test_theme_auto_light_and_dark_apply_and_persist(
     page: Page, base_url: str, path: str, status: int
 ) -> None:
+    """R13: Auto, Light and Dark themes apply and persist."""
     page.emulate_media(color_scheme="light")
     page.goto(base_url + path)
     assert theme_attribute(page) is None
@@ -137,6 +140,7 @@ def test_theme_auto_light_and_dark_apply_and_persist(
 
 @page_params
 def test_no_horizontal_scroll_at_360px(page: Page, base_url: str, path: str, status: int) -> None:
+    """R14: no horizontal scroll on a narrow screen."""
     page.set_viewport_size({"width": 360, "height": 800})
     page.goto(base_url + path)
     page.wait_for_load_state("networkidle")
@@ -147,6 +151,7 @@ def test_no_horizontal_scroll_at_360px(page: Page, base_url: str, path: str, sta
 
 
 def test_nested_missing_path_gets_the_styled_404_page(page: Page, base_url: str) -> None:
+    """R3: a missing path at any depth returns the styled 404 page."""
     responses: dict[str, int] = {}
     page.on("response", lambda r: responses.__setitem__(urlsplit(r.url).path, r.status))
     response = page.goto(base_url + "/a/b/c")
@@ -168,6 +173,7 @@ def test_nested_missing_path_gets_the_styled_404_page(page: Page, base_url: str)
 def test_no_request_leaves_the_local_origin(
     page: Page, base_url: str, path: str, status: int
 ) -> None:
+    """R15: no request leaves the site's own origin."""
     urls: list[str] = []
     page.on("request", lambda r: urls.append(r.url))
     page.goto(base_url + path)
@@ -179,6 +185,7 @@ def test_no_request_leaves_the_local_origin(
 
 @pytest.mark.parametrize("theme", ["Light", "Dark"])
 def test_resume_has_no_horizontal_scroll_at_320px(page: Page, base_url: str, theme: str) -> None:
+    """R14: the resume has no horizontal scroll at 320 px."""
     page.set_viewport_size({"width": 320, "height": 800})
     page.goto(base_url + "/resume.html")
     choose_theme(page, theme)
@@ -194,6 +201,7 @@ def test_resume_has_no_horizontal_scroll_at_320px(page: Page, base_url: str, the
 
 
 def test_resume_details_open_and_close_from_the_keyboard(page: Page, base_url: str) -> None:
+    """R7, R14: resume details sections work from the keyboard."""
     page.goto(base_url + "/resume.html")
     summaries = page.locator("details > summary")
     count = summaries.count()

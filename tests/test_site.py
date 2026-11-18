@@ -50,10 +50,12 @@ def parse_html(path: Path) -> SiteParser:
 
 @pytest.mark.parametrize("path", HTML_FILES, ids=lambda path: path.name)
 def test_exact_csp_meta_tag(path: Path) -> None:
+    """R15: every page carries the exact Content-Security-Policy meta tag."""
     assert CSP in path.read_text(encoding="utf-8")
 
 
 def test_external_urls_only_appear_in_anchor_hrefs() -> None:
+    """R15: no third-party script, font or stylesheet URL; external URLs only in anchors."""
     css = (ROOT / "assets/css/site.css").read_text(encoding="utf-8")
     assert not re.search(r"url\(\s*['\"]?https?://", css, re.IGNORECASE)
 
@@ -73,6 +75,7 @@ def test_external_urls_only_appear_in_anchor_hrefs() -> None:
 
 @pytest.mark.parametrize("path", HTML_FILES, ids=lambda path: path.name)
 def test_no_inline_script_or_style(path: Path) -> None:
+    """R15: no inline script, style block or style attribute."""
     text = path.read_text(encoding="utf-8")
     parser = parse_html(path)
     assert not parser.inline_script_text
@@ -102,6 +105,7 @@ def test_internal_links_and_assets_resolve(path: Path) -> None:
 
 @pytest.mark.parametrize("path", HTML_FILES, ids=lambda path: path.name)
 def test_images_have_accessible_alt_text(path: Path) -> None:
+    """R14: every image has alt text or a presentation role."""
     parser = parse_html(path)
     for tag, attrs in parser.start_tags:
         if tag != "img":
@@ -112,6 +116,7 @@ def test_images_have_accessible_alt_text(path: Path) -> None:
 
 @pytest.mark.parametrize("path", HTML_FILES, ids=lambda path: path.name)
 def test_one_h1_and_a_title(path: Path) -> None:
+    """R14: one h1 per page."""
     parser = parse_html(path)
     tags = [tag for tag, _ in parser.start_tags]
     assert tags.count("h1") == 1
@@ -119,6 +124,7 @@ def test_one_h1_and_a_title(path: Path) -> None:
 
 
 def test_no_phone_numbers_or_email_addresses_in_html() -> None:
+    """R7: no phone number or email address on any page."""
     phone = re.compile(r"\(?\d{3}\)?[-.\s]\d{3}[-.\s]\d{4}")
     email = re.compile(r"\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b", re.IGNORECASE)
     for path in HTML_FILES:
@@ -128,6 +134,7 @@ def test_no_phone_numbers_or_email_addresses_in_html() -> None:
 
 
 def test_bearing_quest_is_not_presented_as_an_organization() -> None:
+    """R10: no page describes Bearing Quest as a company, firm, studio or employer."""
     prohibited = r"(?:company|firm|studio|our\s+team|employer)"
     for path in HTML_FILES:
         text = re.sub(r"<[^>]+>", " ", path.read_text(encoding="utf-8"))
@@ -184,6 +191,7 @@ def contrast_ratio(first: str, second: str) -> float:
 
 
 def test_token_contrast_in_both_themes() -> None:
+    """R14: text 4.5:1 and focus and control edges 3:1 in both themes."""
     css = (ROOT / "assets/css/site.css").read_text(encoding="utf-8")
     themes = {
         "light": tokens_from_block(css_block(css, '[data-theme="light"]')),
@@ -212,6 +220,7 @@ def test_token_contrast_in_both_themes() -> None:
 
 
 def test_theme_token_blocks_match() -> None:
+    """R12, R13: the light and dark token blocks define the same tokens."""
     css = (ROOT / "assets/css/site.css").read_text(encoding="utf-8")
     media = css_block(css, "@media (prefers-color-scheme: dark)")
     auto_dark = declarations_from_block(css_block(media, ":root:not([data-theme])"))
@@ -226,6 +235,7 @@ def test_theme_token_blocks_match() -> None:
 
 
 def test_404_internal_references_are_root_absolute() -> None:
+    """R3: 404.html links and styles work at any path depth."""
     parser = parse_html(ROOT / "404.html")
     for tag, attrs in parser.start_tags:
         for attribute in ("href", "src"):
@@ -241,6 +251,7 @@ def test_404_internal_references_are_root_absolute() -> None:
 
 
 def test_theme_option_labels_show_keyboard_focus() -> None:
+    """R14: the theme switch shows a visible focus ring."""
     css = (ROOT / "assets/css/site.css").read_text(encoding="utf-8")
     block = css_block(css, ".theme-options label:has(input:focus-visible)")
     declarations = declarations_from_block(block)
@@ -290,6 +301,7 @@ SVG_FILES = sorted((ROOT / "assets/img").glob("*.svg"))
 
 
 def test_font_and_svg_hashes_are_pinned() -> None:
+    """R12: fonts and logo SVGs match their pinned hashes."""
     present = {
         path.relative_to(ROOT).as_posix()
         for pattern in ("assets/fonts/*.woff2", "assets/fonts/OFL-*.txt", "assets/img/*.svg")
@@ -303,6 +315,7 @@ def test_font_and_svg_hashes_are_pinned() -> None:
 
 @pytest.mark.parametrize("path", SVG_FILES, ids=lambda path: path.name)
 def test_svg_has_no_active_content(path: Path) -> None:
+    """R12, R15: the logo SVGs carry no script or external reference."""
     text = path.read_text(encoding="utf-8")
     assert not re.search(r"<script", text, re.IGNORECASE)
     assert not re.search(r"\son[a-z]+\s*=", text, re.IGNORECASE)
@@ -314,6 +327,7 @@ def test_svg_has_no_active_content(path: Path) -> None:
 
 
 def test_font_faces_resolve_and_have_licenses() -> None:
+    """R12: fonts are self-hosted with their OFL licences."""
     css_dir = ROOT / "assets/css"
     css = (css_dir / "site.css").read_text(encoding="utf-8")
     faces = re.findall(r"@font-face\s*\{([^}]*)\}", css)
@@ -353,6 +367,7 @@ def rule_declarations(css: str, selector: str) -> dict[str, str]:
 
 
 def test_logo_variants_switch_in_both_dark_theme_paths() -> None:
+    """R12, R13: the logo variant follows the theme."""
     css = (ROOT / "assets/css/site.css").read_text(encoding="utf-8")
     assert rule_declarations(css, ".theme-dark").get("display") == "none"
 
@@ -629,6 +644,7 @@ class CardParser(HTMLParser):
 
 
 def test_no_todo_placeholders_in_published_pages() -> None:
+    """R11: no content placeholder appears on a published page."""
     assert HTML_FILES
     for path in HTML_FILES:
         assert "[TODO" not in path.read_text(encoding="utf-8"), f"{path.name}: [TODO placeholder"
@@ -640,6 +656,7 @@ def test_every_page_footer_shows_2026() -> None:
 
 
 def test_banned_strings_are_in_no_page() -> None:
+    """R10: no avoid-list phrase appears on any page."""
     for path in HTML_FILES:
         text = path.read_text(encoding="utf-8").lower()
         for banned in BANNED_STRINGS:
@@ -647,12 +664,14 @@ def test_banned_strings_are_in_no_page() -> None:
 
 
 def test_resume_keeps_the_approved_lines() -> None:
+    """R7, R11: every resume claim, figure and date matches the approved content."""
     text = visible_text(ROOT / "resume.html")
     for line in RESUME_LINES:
         assert normalize(line) in text, f"resume.html is missing: {line}"
 
 
 def test_resume_has_the_sections_in_order_and_no_education() -> None:
+    """R7: the resume has the approved sections in order."""
     html = (ROOT / "resume.html").read_text(encoding="utf-8")
     headings = re.findall(r"<h2[^>]*>(.*?)</h2>", html)
     assert headings == ["Summary", "Experience", "Projects", "Certifications"]
@@ -668,6 +687,7 @@ def test_earlier_career_has_no_four_digit_year() -> None:
 
 
 def test_every_details_has_a_summary_and_is_closed_by_default() -> None:
+    """R7, R14: resume details sections are closed by default and have a summary."""
     total = 0
     for path in HTML_FILES:
         html = path.read_text(encoding="utf-8")
@@ -679,6 +699,10 @@ def test_every_details_has_a_summary_and_is_closed_by_default() -> None:
 
 
 def test_social_links_point_exactly_at_the_profiles() -> None:
+    """R9, R11: LinkedIn and X links match the approved addresses.
+
+    About and resume link to both. R9's organization, blog and per-page links have no test.
+    """
     allowed = {"linkedin.com": LINKEDIN, "x.com": X_PROFILE, "twitter.com": X_PROFILE}
     for path in HTML_FILES:
         for tag, attrs in parse_html(path).start_tags:
@@ -701,12 +725,14 @@ def test_external_links_use_noopener_noreferrer() -> None:
 
 
 def test_index_cards_are_in_order_with_the_approved_links() -> None:
+    """R4, R5: one card per project, in order, with its approved links."""
     parser = CardParser()
     parser.feed((ROOT / "index.html").read_text(encoding="utf-8"))
     assert parser.cards == list(EXPECTED_CARDS)
 
 
 def test_index_and_about_keep_the_approved_text() -> None:
+    """R4, R6: the home and About text match the approved content."""
     for name, lines in (("index.html", INDEX_LINES), ("about.html", ABOUT_LINES)):
         text = visible_text(ROOT / name)
         for line in lines:
