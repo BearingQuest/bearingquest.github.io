@@ -96,6 +96,7 @@ def published_files() -> set[str]:
 
 
 def test_site_files_entries_are_safe_and_exist() -> None:
+    """R2: site-files.txt lists only safe paths that exist."""
     entries = site_entries()
     assert entries
     assert len(entries) == len(set(entries)), "site-files.txt has duplicates"
@@ -109,12 +110,14 @@ def test_site_files_entries_are_safe_and_exist() -> None:
 
 
 def test_every_root_html_page_is_listed() -> None:
+    """R2: every root HTML page is published."""
     pages = {path.name for path in ROOT.glob("*.html")}
     assert pages
     assert pages <= set(site_entries())
 
 
 def test_every_root_entry_is_classified() -> None:
+    """R2: every tracked root file is published or on the not-published list."""
     root_entries = {PurePosixPath(name).parts[0] for name in tracked_files()}
     listed = {PurePosixPath(entry).parts[0] for entry in site_entries()}
     assert not listed & NOT_PUBLISHED
@@ -125,6 +128,7 @@ def test_every_root_entry_is_classified() -> None:
 
 
 def test_repo_files_are_never_published() -> None:
+    """R2: repo files are never in the published set."""
     for entry in site_entries():
         assert PurePosixPath(entry).parts[0] not in NEVER_PUBLISHED, entry
     published = published_files()
@@ -248,6 +252,7 @@ def test_build_script_reads_only_site_files_and_fails_closed() -> None:
 
 
 def test_build_script_output_is_the_published_set_and_no_repo_files(tmp_path: Path) -> None:
+    """R2: the build output is exactly the published set."""
     out = tmp_path / "site"
     run(["bash", str(BUILD_SCRIPT), str(out)], cwd=tmp_path, check=True, capture_output=True)
     built = {path.relative_to(out).as_posix() for path in out.rglob("*") if path.is_file()}

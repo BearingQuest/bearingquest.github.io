@@ -16,7 +16,9 @@ package manager and no npm.
   match `docs/design.md` and `docs/design/`
 - `tests/test_pages_deploy.py` - pytest checks for `site-files.txt` and `pages.yml`
 - `tests/test_hooks.py` - pytest checks for the pre-push hook and the Makefile
-- `tests/test_claude_settings.py` - pytest checks for `.claude/settings.json`
+- `tests/test_claude_settings.py` - pytest checks that `.claude/settings.json` keeps every
+  deny, ask and sandbox rule (each `Bash(cmd *)` with its bare `Bash(cmd)`), excludes only `gh`
+  from the sandbox and allows nothing
 - `tests/test_workflows.py` - pytest checks for every workflow and the ruleset files
 - `tests/e2e/` - Chromium tests of the built site (`make e2e`), marked `e2e`
 - `tests/_proc.py` - the only place the tests start a process
@@ -33,7 +35,7 @@ package manager and no npm.
   JSON for the owner to apply; agents never apply it)
 - `.github/workflows/` - `ci.yml` (the six required checks), `pages.yml`
   (build and deploy), `pip-audit-daily.yml`, `scorecard.yml`, `claude-review.yml`
-- `.claude/settings.json` - the permission rules. The `Explore` and `test-runner` subagents are user-level, in `~/.claude/agents/`.
+- `.claude/settings.json` - the permission rules and the sandbox pilot (agents never edit it). The `Explore` and `test-runner` subagents are user-level, in `~/.claude/agents/`.
 - `.github/SECURITY.md` - how to report a vulnerability privately
 - `.github/pull_request_template.md` - the pull request body: Summary, then
   Requirements
@@ -58,6 +60,10 @@ package manager and no npm.
 requests). All six must pass before merge. `pip-audit-daily.yml` also runs the audit on
 `main` every day. Dependabot proposes weekly updates for `uv` and GitHub Actions.
 
+To run `zizmor` locally, inside the sandbox (which blocks uv's default tool folder), at
+the version CI pins:
+`UV_TOOL_DIR=$TMPDIR uvx --exclude-newer 2026-11-03 zizmor@1.32.0 --offline .github`
+
 Two workflows are not required checks. `scorecard.yml` runs OpenSSF Scorecard
 weekly and on every push to `main`, publishes to scorecard.dev and uploads SARIF
 to code scanning. `claude-review.yml` has Claude review each pull request with
@@ -80,6 +86,9 @@ artifact. Its `build` job runs on every pull request and push to `main`; its
 - Never put a phone number, street address or email address in any page.
 - UI work follows docs/design.md.
 - Run `make check` before opening any PR.
+- Run every `gh` command on its own: no `cd`, `&&`, `;`, pipes or redirects. You
+  already start in the repo. Only a plain `gh` call runs outside the sandbox, where it
+  can read its login.
 - Work on a branch. Never push to `main` and never merge.
 - When you open a pull request, fill in every section of
   `.github/pull_request_template.md`, in the same order, in the PR body. Cite PRD IDs

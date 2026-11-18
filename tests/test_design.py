@@ -103,12 +103,14 @@ def color_token_problems(css: str) -> list[str]:
 
 
 def test_every_css_color_token_matches_its_design_source() -> None:
+    """R12: site.css color tokens match docs/design/tokens.json in light and dark."""
     css = CSS_PATH.read_text(encoding="utf-8")
     assert len(token_blocks(css)) == 4
     assert color_token_problems(css) == []
 
 
 def test_tokens_json_has_the_recorded_hash() -> None:
+    """R12: tokens.json matches the hash recorded in docs/design.md."""
     design = (ROOT / "docs/design.md").read_text(encoding="utf-8")
     recorded = re.search(r"tokens\.json`[^\n]*?SHA-256 `([0-9a-f]{64})`", design)
     assert recorded, "docs/design.md records no SHA-256 for tokens.json"
@@ -117,6 +119,7 @@ def test_tokens_json_has_the_recorded_hash() -> None:
 
 
 def test_logos_match_the_site_images() -> None:
+    """R12: the site logos are the hash-pinned design logos."""
     logos = {path.name for path in (DESIGN / "logos").iterdir()}
     images = {path.name for path in (ROOT / "assets/img").glob("*.svg")}
     assert images <= logos, (
