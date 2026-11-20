@@ -49,6 +49,16 @@ A new color token in `site.css` needs a row here and a source in one of those tw
 - **Weights:** the site ships Inter 400 and 700, IBM Plex Mono 400 and 500, and Cinzel as a variable font. IBM Plex Mono rules ask for no weight above 500, so the browser never fakes a bold (8 Nov 2026); Inter rules at 650 render with the shipped 700.
 - **Font files:** downloaded from the upstream releases (Inter v4.1, IBM Plex Mono 2.5.0 Latin1, Cinzel from google/fonts at 3dd7884), not the design system's copies (Dusten, 8 Nov 2026).
 
+## Blog
+
+- Post text column at most 70 characters wide.
+- Figures span the full column width (`max-width: 100%`, `height: auto`), with a caption below in the muted colour at body size.
+- The publication date sits under the title, in the muted colour.
+- Orange (`--brand-accent`) is used only as decoration or for display text 24 px and up, as now.
+- Figures are drawn on a white card with a border, so they read in both themes and need no dark versions.
+- SVG images can't use the page's self-hosted fonts, so their text falls back to the system sans-serif; accepted.
+- The blog templates reuse `assets/css/site.css` and `assets/js/theme.js`; no new colours.
+
 ## Rules for UI changes
 
 - Use tokens, never raw hex, in rules outside the token blocks.
