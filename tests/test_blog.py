@@ -242,10 +242,21 @@ def test_uv_lock_keeps_pygments_at_2_20_or_newer() -> None:
 
 def test_pyproject_keeps_the_uv_dependency_cooldown() -> None:
     """R20: [tool.uv] keeps exclude-newer = "7 days" (Semgrep rule
-    package_managers.uv.uv-missing-dependency-cooldown), and uv.lock records the 7-day span,
-    so a release younger than 7 days is never locked."""
-    project = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
-    assert project["tool"]["uv"].get("exclude-newer") == "7 days", "the uv cooldown is gone"
+    package_managers.uv.uv-missing-dependency-cooldown) as its first key, with no opening
+    square bracket on any line before it: the rule reads the table as text only up to the
+    first such bracket and would flag a cooldown that comes after one. uv.lock records the
+    7-day span, so a release younger than 7 days is never locked."""
+    text = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
+    project = tomllib.loads(text)
+    uv = project["tool"]["uv"]
+    assert uv.get("exclude-newer") == "7 days", "the uv cooldown is gone"
+    assert next(iter(uv)) == "exclude-newer", "exclude-newer must be the first key of [tool.uv]"
+    lines = text.splitlines()
+    table = lines.index("[tool.uv]")
+    cooldown = next(n for n, line in enumerate(lines) if line.startswith("exclude-newer"))
+    assert cooldown > table
+    for line in lines[table + 1 : cooldown + 1]:
+        assert "[" not in line, f"a [ before exclude-newer hides it from the Semgrep rule: {line}"
     lock = tomllib.loads((ROOT / "uv.lock").read_text(encoding="utf-8"))
     assert lock["options"]["exclude-newer-span"] == "P7D"
 

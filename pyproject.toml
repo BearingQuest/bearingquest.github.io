@@ -5,11 +5,12 @@ requires-python = ">=3.14"
 dependencies = []
 
 [tool.uv]
+# Dependency cooldown: resolve only releases at least 7 days old (docs/decisions.md).
+# Keep this the first key in the table: Semgrep's uv cooldown rule stops reading at the first opening square bracket.
+exclude-newer = "7 days"
 # The blog build (scripts/build-blog.sh) needs "site", so uv sync and uv run install it
 # up front; the Pages build adds --no-dev to leave the test tools out.
 default-groups = ["dev", "site"]
-# Dependency cooldown: resolve only releases at least 7 days old (docs/decisions.md).
-exclude-newer = "7 days"
 # Pelican 4.12.0 caps pygments below 2.20, which would lock 2.19.2 (PYSEC-2026-2987).
 # Remove this override when a Pelican release lifts the cap (docs/decisions.md).
 override-dependencies = ["pygments>=2.20.0"]
