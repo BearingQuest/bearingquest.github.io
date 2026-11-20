@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta http-equiv="Content-Security-Policy"
+          content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self'; base-uri 'none'; form-action 'none'">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+    <meta name="description" content="{% block description %}{% endblock %}">
+    <title>{% block title %}{% endblock %} | Bearing Quest</title>
+    <link rel="icon" href="/assets/img/bearing-quest-mark-on-light.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="/assets/css/site.css">
+    <link rel="alternate" type="application/atom+xml" title="Bearing Quest blog" href="/blog/feed.xml">
+    <script src="/assets/js/theme.js"></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to main content</a>
+    <header class="site-header">
+      <div class="header-inner">
+        <a class="brand" href="/index.html" aria-label="Bearing Quest home">
+          <img class="theme-light" src="/assets/img/bearing-quest-lockup-on-light.svg" alt="" role="presentation" width="134" height="44">
+          <img class="theme-dark" src="/assets/img/bearing-quest-lockup-on-dark.svg" alt="" role="presentation" width="134" height="44">
+        </a>
+        <nav aria-label="Primary navigation">
+          <a href="/index.html">Projects</a>
+          <a href="/about.html">About</a>
+          <a href="/resume.html">Resume</a>
+          <a href="/blog/" aria-current="page">Blog</a>
+        </nav>
+        <fieldset class="theme-control">
+          <legend>Theme</legend>
+          <div class="theme-options">
+            <label><input type="radio" name="theme" value="auto" checked> Auto</label>
+            <label><input type="radio" name="theme" value="light"> Light</label>
+            <label><input type="radio" name="theme" value="dark"> Dark</label>
+          </div>
+          <output class="visually-hidden" data-theme-status aria-live="polite">Theme: Auto</output>
+        </fieldset>
+      </div>
+    </header>
+
+    <main id="main">
+{% block content %}{% endblock %}
+    </main>
+
+    <footer class="site-footer">
+      <div class="footer-inner">
+        <div>
+          <p class="wordmark">Bearing Quest</p>
+          <p>Code MIT licensed · Site text © 2026 Dusten Harrison, all rights reserved.</p>
+        </div>
+        <nav aria-label="Links">
+          <a href="https://github.com/BearingQuest" rel="noopener noreferrer">GitHub <span aria-hidden="true">↗</span></a>
+          <a href="/blog/">Blog</a>
+          <a href="https://www.linkedin.com/in/dustenharrison" rel="noopener noreferrer">LinkedIn <span aria-hidden="true">↗</span></a>
+        </nav>
+      </div>
+    </footer>
+  </body>
+</html>

@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 476" width="760" height="476" role="img" aria-labelledby="t d">
+<title id="t">Failing controls at each repo's first baseline audit</title>
+<desc id="d">bearingquest.github.io 26 (first audit, 10 Nov, 56 controls then, 8 not checked), project-template 3, risk-register 28, questvector 29, questcast 25, risk-trainer 28. All are now zero, with departures recorded.</desc>
+<rect x="0.5" y="0.5" width="759" height="475" rx="12" fill="#FFFFFF" stroke="#D5DBE2"/>
+<text x="32" y="48" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="22" font-weight="700" fill="#1B365D">Failing controls at the first audit</text>
+<text x="32" y="76" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="15" fill="#5B6B7F">Engineering baseline 2.0. Every repo is now at zero, with its departures recorded.</text>
+<line x1="200" y1="100" x2="200" y2="390" stroke="#D5DBE2" stroke-width="1"/>
+<text x="200" y="410" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="13" fill="#5B6B7F" text-anchor="middle">0</text>
+<line x1="270" y1="100" x2="270" y2="390" stroke="#D5DBE2" stroke-width="1"/>
+<text x="270" y="410" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="13" fill="#5B6B7F" text-anchor="middle">5</text>
+<line x1="340" y1="100" x2="340" y2="390" stroke="#D5DBE2" stroke-width="1"/>
+<text x="340" y="410" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="13" fill="#5B6B7F" text-anchor="middle">10</text>
+<line x1="410" y1="100" x2="410" y2="390" stroke="#D5DBE2" stroke-width="1"/>
+<text x="410" y="410" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="13" fill="#5B6B7F" text-anchor="middle">15</text>
+<line x1="480" y1="100" x2="480" y2="390" stroke="#D5DBE2" stroke-width="1"/>
+<text x="480" y="410" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="13" fill="#5B6B7F" text-anchor="middle">20</text>
+<line x1="550" y1="100" x2="550" y2="390" stroke="#D5DBE2" stroke-width="1"/>
+<text x="550" y="410" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="13" fill="#5B6B7F" text-anchor="middle">25</text>
+<line x1="620" y1="100" x2="620" y2="390" stroke="#D5DBE2" stroke-width="1"/>
+<text x="620" y="410" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="13" fill="#5B6B7F" text-anchor="middle">30</text>
+<text x="186" y="131" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="16" fill="#3A3D40" text-anchor="end">project-template</text>
+<rect x="200" y="110" width="42" height="30" rx="4" fill="#C85A27"/>
+<text x="252" y="131" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="16" font-weight="700" fill="#1B365D">3</text>
+<text x="728" y="131" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="15" fill="#1B365D" text-anchor="end">now 0</text>
+<text x="186" y="179" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="16" fill="#3A3D40" text-anchor="end">risk-register</text>
+<rect x="200" y="158" width="392" height="30" rx="4" fill="#C85A27"/>
+<text x="602" y="179" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="16" font-weight="700" fill="#1B365D">28</text>
+<text x="728" y="179" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="15" fill="#1B365D" text-anchor="end">now 0</text>
+<text x="186" y="227" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="16" fill="#3A3D40" text-anchor="end">questvector</text>
+<rect x="200" y="206" width="406" height="30" rx="4" fill="#C85A27"/>
+<text x="616" y="227" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="16" font-weight="700" fill="#1B365D">29</text>
+<text x="728" y="227" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="15" fill="#1B365D" text-anchor="end">now 0</text>
+<text x="186" y="275" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="16" fill="#3A3D40" text-anchor="end">questcast</text>
+<rect x="200" y="254" width="350" height="30" rx="4" fill="#C85A27"/>
+<text x="560" y="275" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="16" font-weight="700" fill="#1B365D">25</text>
+<text x="728" y="275" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="15" fill="#1B365D" text-anchor="end">now 0</text>
+<text x="186" y="323" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="16" fill="#3A3D40" text-anchor="end">risk-trainer</text>
+<rect x="200" y="302" width="392" height="30" rx="4" fill="#C85A27"/>
+<text x="602" y="323" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="16" font-weight="700" fill="#1B365D">28</text>
+<text x="728" y="323" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="15" fill="#1B365D" text-anchor="end">now 0</text>
+<text x="186" y="371" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="16" fill="#3A3D40" text-anchor="end">site</text>
+<rect x="200" y="350" width="364" height="30" rx="4" fill="#C85A27"/>
+<text x="574" y="371" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="16" font-weight="700" fill="#1B365D">26</text>
+<text x="728" y="371" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="15" fill="#1B365D" text-anchor="end">now 0</text>
+<text x="32" y="440" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="13" fill="#5B6B7F">Counts from Claude Code's read-only audit reports. Five repos: 59 controls, 14–17 Nov 2026.</text>
+<text x="32" y="458" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="13" fill="#5B6B7F">The site was audited first (10 Nov) against 56 controls, with 8 not checked.</text>
+</svg>

@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 560" width="860" height="560" role="img" aria-labelledby="t d">
+<title id="t">What engineering baseline 2.0 covers</title>
+<desc id="d">Engineering baseline 2.0 has 73 controls. 59 apply to each repository: Local quality gates 8 (caught before code leaves the Mac); CI and supply chain 18 (checked before reaching main); AI agent rules 9 (what the agent can do without me); GitHub settings 9 (enforced by the platform, not habit); Records 8 (the next session can see why); UI, AWS and template 7 (only where they apply). 14 sit above the repositories: Organization 7 (one security setup for every repo); Dusten's Mac 4 (root-owned agent settings, sandbox); Accounts and AWS 3 (spending caps, credential inventory).</desc>
+<rect x="0.5" y="0.5" width="859" height="559" rx="12" fill="#FFFFFF" stroke="#D5DBE2"/>
+<text x="32" y="48" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="22" font-weight="700" fill="#1B365D">Engineering baseline 2.0: 73 controls</text>
+<text x="32" y="76" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="15" fill="#5B6B7F">Each has an ID, a scope and a named check, so an audit is a checklist, not a judgement call.</text>
+<rect x="32" y="100" width="796" height="262" rx="10" fill="#F4F6F8" stroke="#D5DBE2"/>
+<text x="48" y="128" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="15" font-weight="700" fill="#1B365D">Each repository: 59</text>
+<rect x="48" y="144" width="244" height="92" rx="8" fill="#FFFFFF" stroke="#1B365D" stroke-width="1.2"/>
+<text x="64" y="184" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="28" font-weight="700" fill="#C85A27">8</text>
+<text x="110" y="182" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="15" font-weight="700" fill="#1B365D">Local quality gates</text>
+<text x="64" y="216" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="13" fill="#3A3D40">caught before code leaves the Mac</text>
+<rect x="304" y="144" width="244" height="92" rx="8" fill="#FFFFFF" stroke="#1B365D" stroke-width="1.2"/>
+<text x="320" y="184" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="28" font-weight="700" fill="#C85A27">18</text>
+<text x="366" y="182" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="15" font-weight="700" fill="#1B365D">CI and supply chain</text>
+<text x="320" y="216" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="13" fill="#3A3D40">checked before reaching main</text>
+<rect x="560" y="144" width="244" height="92" rx="8" fill="#FFFFFF" stroke="#1B365D" stroke-width="1.2"/>
+<text x="576" y="184" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="28" font-weight="700" fill="#C85A27">9</text>
+<text x="622" y="182" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="15" font-weight="700" fill="#1B365D">AI agent rules</text>
+<text x="576" y="216" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="13" fill="#3A3D40">what the agent can do without me</text>
+<rect x="48" y="248" width="244" height="92" rx="8" fill="#FFFFFF" stroke="#1B365D" stroke-width="1.2"/>
+<text x="64" y="288" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="28" font-weight="700" fill="#C85A27">9</text>
+<text x="110" y="286" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="15" font-weight="700" fill="#1B365D">GitHub settings</text>
+<text x="64" y="320" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="13" fill="#3A3D40">enforced by the platform, not habit</text>
+<rect x="304" y="248" width="244" height="92" rx="8" fill="#FFFFFF" stroke="#1B365D" stroke-width="1.2"/>
+<text x="320" y="288" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="28" font-weight="700" fill="#C85A27">8</text>
+<text x="366" y="286" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="15" font-weight="700" fill="#1B365D">Records</text>
+<text x="320" y="320" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="13" fill="#3A3D40">the next session can see why</text>
+<rect x="560" y="248" width="244" height="92" rx="8" fill="#FFFFFF" stroke="#1B365D" stroke-width="1.2"/>
+<text x="576" y="288" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="28" font-weight="700" fill="#C85A27">7</text>
+<text x="622" y="286" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="15" font-weight="700" fill="#1B365D">UI, AWS and template</text>
+<text x="576" y="320" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="13" fill="#3A3D40">only where they apply</text>
+<rect x="32" y="380" width="796" height="150" rx="10" fill="#F4F6F8" stroke="#D5DBE2"/>
+<text x="48" y="408" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="15" font-weight="700" fill="#1B365D">Above the repositories: 14</text>
+<rect x="48" y="424" width="244" height="92" rx="8" fill="#FFFFFF" stroke="#1B365D" stroke-width="1.2"/>
+<text x="64" y="464" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="28" font-weight="700" fill="#C85A27">7</text>
+<text x="110" y="462" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="15" font-weight="700" fill="#1B365D">Organization</text>
+<text x="64" y="496" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="13" fill="#3A3D40">one security setup for every repo</text>
+<rect x="304" y="424" width="244" height="92" rx="8" fill="#FFFFFF" stroke="#1B365D" stroke-width="1.2"/>
+<text x="320" y="464" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="28" font-weight="700" fill="#C85A27">4</text>
+<text x="366" y="462" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="15" font-weight="700" fill="#1B365D">Dusten's Mac</text>
+<text x="320" y="496" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="13" fill="#3A3D40">root-owned agent settings, sandbox</text>
+<rect x="560" y="424" width="244" height="92" rx="8" fill="#FFFFFF" stroke="#1B365D" stroke-width="1.2"/>
+<text x="576" y="464" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="28" font-weight="700" fill="#C85A27">3</text>
+<text x="622" y="462" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="15" font-weight="700" fill="#1B365D">Accounts and AWS</text>
+<text x="576" y="496" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="13" fill="#3A3D40">spending caps, credential inventory</text>
+</svg>

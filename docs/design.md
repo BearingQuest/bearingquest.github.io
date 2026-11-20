@@ -9,6 +9,7 @@ How bearingquest.com uses the Bearing Quest design system. UI work in this repo 
 - `docs/design/reference/bundle.css` is the design system's component stylesheet, for reference only. The site doesn't load it.
 - `docs/design/logos/` holds the four logo SVGs the site uses, identical to `assets/img/`. A test keeps the two copies equal.
 - `docs/design/screens/` holds the accepted screens: home, About, resume and 404 at 1280 px in light and dark, and home at 390 px in both themes, rendered from d0853e5 (PR #16), which Dusten reviewed live on 14 Nov 2026.
+- The blog index and the first post at 1280 px in both themes (`blog-desktop-*` and `blog-post-desktop-*`) are added with the blog (R17-R21). `scripts/blog-screens.py` takes them; Dusten runs it in a plain Terminal because the agent sandbox can't start Chromium.
 - The screens predate this pull request's card-edge change, so they show Bearing Register in `accent` and DossierNexus in `muted`; the next screens refresh updates them.
 
 ## The site's layer

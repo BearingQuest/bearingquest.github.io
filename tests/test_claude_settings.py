@@ -1,4 +1,5 @@
-"""AGENT-01..07: .claude/settings.json keeps every deny, ask and sandbox key, and allows nothing.
+"""AGENT-01..07 and AGENT-08: .claude/settings.json keeps every deny, ask and sandbox key, and
+allows nothing; AGENTS.md keeps the rules the sandbox makes necessary.
 
 The only command excluded from the sandbox is gh.
 """
@@ -278,3 +279,37 @@ def test_agents_md_tells_the_agent_to_run_gh_on_its_own() -> None:
     text = " ".join((REPO_ROOT / "AGENTS.md").read_text(encoding="utf-8").split())
     assert "Run every `gh` command on its own: no `cd`, `&&`, `;`, pipes or redirects." in text
     assert "Only a plain `gh` call runs outside the sandbox" in text
+
+
+def agents_text() -> str:
+    return " ".join((REPO_ROOT / "AGENTS.md").read_text(encoding="utf-8").split())
+
+
+def test_agents_md_says_push_without_set_upstream() -> None:
+    # AGENT-08: -u and --set-upstream write .git/config, which the sandbox blocks,
+    # so AGENTS.md must give the plain push form.
+    assert "git push origin <branch>" in agents_text()
+
+
+def test_agents_md_says_pty_tests_skip_outside_ci() -> None:
+    # AGENT-08: the sandbox cannot allocate a pty, so such a test must skip there
+    # (with a reason) instead of failing, and run in CI.
+    assert "pseudo-terminal (pty) skips outside CI" in agents_text()
+
+
+def test_agents_md_says_browser_scripts_are_run_by_the_owner() -> None:
+    # AGENT-08: the sandbox cannot start Chromium on macOS, so the agent says so in
+    # the plan and the owner runs the script.
+    assert "run by the owner in a plain Terminal" in agents_text()
+
+
+def test_agents_md_says_allow_local_binding_needs_a_local_server() -> None:
+    # AGENT-08: allowLocalBinding widens the sandbox, so AGENTS.md must say when
+    # (and only when) it may be proposed.
+    assert "allowLocalBinding" in agents_text()
+
+
+def test_agents_md_flags_a_baseline_reaudit() -> None:
+    # AGENT-08: a scope change (new package, GUI, Pages site, release workflow, AWS
+    # deploy) brings new controls into play, so the plan must say a re-audit is due.
+    assert "a baseline re-audit is due" in agents_text()

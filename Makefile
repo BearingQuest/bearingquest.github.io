@@ -3,7 +3,7 @@
 SHELL := /bin/bash
 .SHELLFLAGS := -euo pipefail -c
 .DEFAULT_GOAL := help
-.PHONY: help check e2e audit hooks
+.PHONY: help check e2e audit hooks blog
 
 help: ## List the targets
 	@grep -E '^[a-z0-9]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{ printf "  %-6s %s\n", $$1, $$2 }'
@@ -24,6 +24,10 @@ e2e: ## Chromium tests against the built site (needs Playwright's browsers)
 audit: ## pip-audit every package locked in uv.lock
 	uv export --locked --format requirements-txt --no-emit-project --quiet --output-file requirements-audit.txt
 	uv run --locked pip-audit --strict --disable-pip -r requirements-audit.txt
+
+blog: ## Build the blog with Pelican into _build/blog
+	scripts/build-blog.sh
+	@echo "Built the blog in _build/blog"
 
 hooks: ## Use the committed hooks in .githooks (pre-push runs gitleaks)
 	git config core.hooksPath .githooks

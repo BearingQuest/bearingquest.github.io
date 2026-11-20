@@ -52,7 +52,14 @@ EXPECTED_SCREENS = {
     f"{page}-desktop-{theme}.png"
     for page in ("home", "about", "resume", "404")
     for theme in ("light", "dark")
-} | {"home-mobile-light.png", "home-mobile-dark.png"}
+} | {
+    "home-mobile-light.png",
+    "home-mobile-dark.png",
+    "blog-desktop-light.png",
+    "blog-desktop-dark.png",
+    "blog-post-desktop-light.png",
+    "blog-post-desktop-dark.png",
+}
 
 
 def design_tokens(filename: str) -> dict[str, dict[str, str]]:
@@ -155,7 +162,7 @@ def png_problem(data: bytes) -> str | None:
     return "no IEND"
 
 
-def test_design_screens_are_the_ten_expected_valid_pngs() -> None:
+def test_design_screens_are_the_expected_valid_pngs() -> None:
     screens = DESIGN / "screens"
     assert {path.name for path in screens.iterdir()} == EXPECTED_SCREENS
     for name in sorted(EXPECTED_SCREENS):

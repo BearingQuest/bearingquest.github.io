@@ -418,3 +418,27 @@ def test_playwright_and_its_pytest_plugin_are_locked_dev_dependencies() -> None:
     dev = pyproject["dependency-groups"]["dev"]
     assert f"playwright=={locked_version('playwright')}" in dev
     assert f"pytest-playwright=={locked_version('pytest-playwright')}" in dev
+
+
+PAGES = WORKFLOW_DIR / "pages.yml"
+SHA_PIN = re.compile(r"[\w.-]+/[\w.-]+@[0-9a-f]{40}")
+
+
+def test_pages_build_installs_uv_pinned_with_caching_off_and_reads_only() -> None:
+    """R20: the Pages build job installs uv from a commit-pinned action with the cache off,
+    holds only contents: read, and leaves the dev group out of the blog build."""
+    workflow = load(PAGES)
+    assert workflow["permissions"] == {"contents": "read"}
+    build = workflow["jobs"]["build"]
+    assert "permissions" not in build
+    setup = [s for s in build["steps"] if s.get("uses", "").startswith("astral-sh/setup-uv@")]
+    assert len(setup) == 1
+    assert SHA_PIN.fullmatch(setup[0]["uses"])
+    assert setup[0]["with"]["enable-cache"] is False
+    runs = [s for s in build["steps"] if "run" in s]
+    assert [s["run"].strip() for s in runs] == ["bash scripts/build-site.sh _site"]
+    assert runs[0]["env"] == {"BLOG_NO_DEV": "1"}
+    order = [s.get("uses", "").split("@")[0] or "run" for s in build["steps"]]
+    assert order.index("astral-sh/setup-uv") < order.index("run")
+    deploy = workflow["jobs"]["deploy"]
+    assert deploy["permissions"] == {"pages": "write", "id-token": "write"}

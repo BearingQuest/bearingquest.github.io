@@ -1,7 +1,9 @@
 #!/bin/bash
 # Copies the paths listed in site-files.txt into the directory given as the
-# only argument, which must not exist yet. pages.yml publishes that directory
+# only argument, which must not exist yet, then builds the blog with Pelican
+# (scripts/build-blog.sh) into <dir>/blog. pages.yml publishes that directory
 # and tests/e2e serves it, so both test and deploy the same file set.
+# BLOG_NO_DEV=1 leaves the dev group out of the blog build (the Pages build sets it).
 # Plain bash 3.2 (macOS) compatible.
 set -euo pipefail
 
@@ -37,6 +39,17 @@ while IFS= read -r line || [ -n "$line" ]; do
   mkdir -p "$dest"
   cp -R "$path" "$dest/"
 done < site-files.txt
+
+if [ "${BLOG_NO_DEV:-}" = "1" ]; then
+  scripts/build-blog.sh --no-dev >&2
+else
+  scripts/build-blog.sh >&2
+fi
+if [ ! -f _build/blog/index.html ]; then
+  echo "::error::the blog build wrote no _build/blog/index.html"
+  exit 1
+fi
+cp -R _build/blog "$out/blog"
 if [ -n "$(find "$out" -type l)" ]; then
   echo "::error::$out contains a symlink"
   exit 1

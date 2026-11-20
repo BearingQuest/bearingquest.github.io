@@ -8,9 +8,11 @@ from pathlib import Path
 from urllib.parse import unquote, urlsplit
 
 import pytest
+from _site import built_pages, built_site
 
 ROOT = Path(__file__).resolve().parents[1]
-HTML_FILES = sorted(ROOT.glob("*.html"))
+# The built site, so the Pelican blog pages get the same checks as the hand-written ones.
+HTML_FILES = built_pages()
 # The exact tag, line break and indent included, as it appears in every page.
 CSP = (
     '<meta http-equiv="Content-Security-Policy"\n'
@@ -18,6 +20,10 @@ CSP = (
     "img-src 'self'; font-src 'self'; base-uri 'none'; form-action 'none'\">"
 )
 EXTERNAL_SCHEMES = {"http", "https"}
+
+
+def page_id(path: Path) -> str:
+    return path.relative_to(built_site()).as_posix()
 
 
 class SiteParser(HTMLParser):
@@ -48,7 +54,7 @@ def parse_html(path: Path) -> SiteParser:
     return parser
 
 
-@pytest.mark.parametrize("path", HTML_FILES, ids=lambda path: path.name)
+@pytest.mark.parametrize("path", HTML_FILES, ids=page_id)
 def test_exact_csp_meta_tag(path: Path) -> None:
     """R15: every page carries the exact Content-Security-Policy meta tag."""
     assert CSP in path.read_text(encoding="utf-8")
@@ -73,7 +79,7 @@ def test_external_urls_only_appear_in_anchor_hrefs() -> None:
                     )
 
 
-@pytest.mark.parametrize("path", HTML_FILES, ids=lambda path: path.name)
+@pytest.mark.parametrize("path", HTML_FILES, ids=page_id)
 def test_no_inline_script_or_style(path: Path) -> None:
     """R15: no inline script, style block or style attribute."""
     text = path.read_text(encoding="utf-8")
@@ -83,8 +89,9 @@ def test_no_inline_script_or_style(path: Path) -> None:
     assert not re.search(r"\sstyle\s*=", text, re.IGNORECASE)
 
 
-@pytest.mark.parametrize("path", HTML_FILES, ids=lambda path: path.name)
+@pytest.mark.parametrize("path", HTML_FILES, ids=page_id)
 def test_internal_links_and_assets_resolve(path: Path) -> None:
+    """R3, R20: every local link and asset on every built page, blog pages included, resolves."""
     parser = parse_html(path)
     for tag, attrs in parser.start_tags:
         for attribute in ("href", "src"):
@@ -97,13 +104,18 @@ def test_internal_links_and_assets_resolve(path: Path) -> None:
             target_path = unquote(parsed.path)
             if not target_path:
                 continue
-            target = ROOT / target_path.lstrip("/")
+            site = built_site()
+            target = (
+                site / target_path.lstrip("/")
+                if target_path.startswith("/")
+                else path.parent / target_path
+            )
             if target.is_dir():
                 target /= "index.html"
             assert target.is_file(), f"{path.name}: {tag}[{attribute}] does not resolve: {value}"
 
 
-@pytest.mark.parametrize("path", HTML_FILES, ids=lambda path: path.name)
+@pytest.mark.parametrize("path", HTML_FILES, ids=page_id)
 def test_images_have_accessible_alt_text(path: Path) -> None:
     """R14: every image has alt text or a presentation role."""
     parser = parse_html(path)
@@ -114,7 +126,7 @@ def test_images_have_accessible_alt_text(path: Path) -> None:
         assert attrs["alt"] or attrs.get("role") == "presentation"
 
 
-@pytest.mark.parametrize("path", HTML_FILES, ids=lambda path: path.name)
+@pytest.mark.parametrize("path", HTML_FILES, ids=page_id)
 def test_one_h1_and_a_title(path: Path) -> None:
     """R14: one h1 per page."""
     parser = parse_html(path)
@@ -284,6 +296,21 @@ EXPECTED_ASSET_HASHES = {
     "assets/fonts/OFL-Inter.txt": (
         "262481e844521b326f5ecd053e59b98c8b2da78c8ee1bdbb6e8174305e54935a"
     ),
+    "assets/img/blog/baseline-map.svg": (
+        "60e72b17ab9b4e698bb26b2de17be4d4e68b46e6697381937d6fcf2804059089"
+    ),
+    "assets/img/blog/change-loop.svg": (
+        "ecebb210e88817eed4e626d0fd3b36cb456143739ad544d63eba8ed114ae5b78"
+    ),
+    "assets/img/blog/failing-controls.svg": (
+        "024bb329377190384fa21f416ad868e3213a3c2ffa0763036046b971bda4ea8d"
+    ),
+    "assets/img/blog/guardrail-layers.svg": (
+        "63aa5ca3182421a9980c529625a1817cc61b0f281d7d39942fea4622121db6c4"
+    ),
+    "assets/img/blog/rollout-timeline.svg": (
+        "3f163253e66a7c8dc4d014fa0efecb7fd1ea0abfc97dbc2b77a6e6b8dbcbb3db"
+    ),
     "assets/img/bearing-quest-lockup-on-dark.svg": (
         "6a34f44ae1bd1880d9ff1e14628f7c4c3947a90a7113a81934e20ab7d08ea981"
     ),
@@ -297,14 +324,14 @@ EXPECTED_ASSET_HASHES = {
         "4a62583464ca8a17b62973d9e90f46c7d82afcab89156ca6f30c433cb2ef22ac"
     ),
 }
-SVG_FILES = sorted((ROOT / "assets/img").glob("*.svg"))
+SVG_FILES = sorted((ROOT / "assets/img").glob("**/*.svg"))
 
 
 def test_font_and_svg_hashes_are_pinned() -> None:
-    """R12: fonts and logo SVGs match their pinned hashes."""
+    """R12, R19: fonts, logo SVGs and blog SVGs match their pinned hashes."""
     present = {
         path.relative_to(ROOT).as_posix()
-        for pattern in ("assets/fonts/*.woff2", "assets/fonts/OFL-*.txt", "assets/img/*.svg")
+        for pattern in ("assets/fonts/*.woff2", "assets/fonts/OFL-*.txt", "assets/img/**/*.svg")
         for path in ROOT.glob(pattern)
     }
     assert present == set(EXPECTED_ASSET_HASHES)
@@ -315,7 +342,7 @@ def test_font_and_svg_hashes_are_pinned() -> None:
 
 @pytest.mark.parametrize("path", SVG_FILES, ids=lambda path: path.name)
 def test_svg_has_no_active_content(path: Path) -> None:
-    """R12, R15: the logo SVGs carry no script or external reference."""
+    """R12, R15, R19: the logo and blog SVGs carry no script, event handler or foreignObject."""
     text = path.read_text(encoding="utf-8")
     assert not re.search(r"<script", text, re.IGNORECASE)
     assert not re.search(r"\son[a-z]+\s*=", text, re.IGNORECASE)
@@ -701,7 +728,7 @@ def test_every_details_has_a_summary_and_is_closed_by_default() -> None:
 def test_social_links_point_exactly_at_the_profiles() -> None:
     """R9, R11: LinkedIn and X links match the approved addresses.
 
-    About and resume link to both. R9's organization, blog and per-page links have no test.
+    About and resume link to both.
     """
     allowed = {"linkedin.com": LINKEDIN, "x.com": X_PROFILE, "twitter.com": X_PROFILE}
     for path in HTML_FILES:
@@ -714,6 +741,28 @@ def test_social_links_point_exactly_at_the_profiles() -> None:
         hrefs = [a.get("href") for tag, a in parse_html(ROOT / name).start_tags if tag == "a"]
         assert LINKEDIN in hrefs, name
         assert X_PROFILE in hrefs, name
+
+
+def test_every_page_links_to_the_blog_the_organization_and_linkedin() -> None:
+    """R9: every page, built blog pages included, links to /blog/, the GitHub organization
+    and LinkedIn."""
+    assert any(page_id(path).startswith("blog/") for path in HTML_FILES)
+    for path in HTML_FILES:
+        site = built_site()
+        hrefs = set()
+        for tag, attrs in parse_html(path).start_tags:
+            href = attrs.get("href")
+            if tag != "a" or not href:
+                continue
+            if urlsplit(href).scheme:
+                hrefs.add(href)
+            else:
+                resolved = site / href.lstrip("/") if href.startswith("/") else path.parent / href
+                hrefs.add(resolved.resolve().relative_to(site.resolve()).as_posix())
+        page = page_id(path)
+        assert "blog" in hrefs or "blog/index.html" in hrefs, f"{page}: no link to /blog/"
+        assert "https://github.com/BearingQuest" in hrefs, f"{page}: no link to the GitHub org"
+        assert LINKEDIN in hrefs, f"{page}: no link to LinkedIn"
 
 
 def test_external_links_use_noopener_noreferrer() -> None:
