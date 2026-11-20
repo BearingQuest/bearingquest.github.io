@@ -5,12 +5,15 @@ Every check runs against the built site (tests/_site.py), so it sees what deploy
 
 from __future__ import annotations
 
+import importlib.util
 import re
 import tomllib
 from html.parser import HTMLParser
 from pathlib import Path
 from urllib.parse import urljoin, urlsplit
 
+import pelican
+import pytest
 from _site import built_site
 from defusedxml import ElementTree
 
@@ -336,3 +339,102 @@ def test_feed_is_atom_with_absolute_blog_links() -> None:
         assert entry.find(f"{ATOM}title") is not None
         assert entry.find(f"{ATOM}updated") is not None
         assert entry.find(f"{ATOM}id") is not None
+
+
+VOID_TAGS = {"area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "source"}
+
+
+class Structure(HTMLParser):
+    """Each h1, h2 and figure with its class, whether the element with class "post" encloses
+    it, and the attributes of the img inside the figure."""
+
+    def __init__(self) -> None:
+        super().__init__(convert_charrefs=True)
+        self._stack: list[tuple[str, bool]] = []
+        self.found: list[dict[str, object]] = []
+        self._figure: dict[str, object] | None = None
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        attributes = dict(attrs)
+        classes = (attributes.get("class") or "").split()
+        in_post = any(is_post for _, is_post in self._stack)
+        if tag in {"h1", "h2", "figure"}:
+            self._figure = {"tag": tag, "classes": classes, "in_post": in_post, "img": None}
+            self.found.append(self._figure)
+        elif tag == "img" and self._figure is not None and self._figure["img"] is None:
+            self._figure["img"] = attributes
+        if tag not in VOID_TAGS:
+            self._stack.append((tag, "post" in classes))
+
+    def handle_endtag(self, tag: str) -> None:
+        while self._stack:
+            if self._stack.pop()[0] == tag:
+                break
+
+
+def structure(path: Path) -> list[dict[str, object]]:
+    parser = Structure()
+    parser.feed(path.read_text(encoding="utf-8"))
+    return parser.found
+
+
+def test_post_headings_and_figures_are_inside_the_post_element() -> None:
+    """R17: on each built post page the one h1, every h2 and every figure sit inside the
+    element with class "post", so the .post rules in site.css apply to them."""
+    for page in post_pages():
+        found = structure(page)
+        assert [item["tag"] for item in found].count("h1") == 1, page.name
+        assert any(item["tag"] == "h2" for item in found), page.name
+        for item in found:
+            assert item["in_post"], f"{page.name}: {item['tag']} is outside .post"
+
+
+def test_post_hero_figure_has_the_hero_class_and_keeps_its_dimensions() -> None:
+    """R19: the figure holding a hero image has class post-hero (the banner-strip rule),
+    and its img keeps numeric width and height attributes."""
+    seen = 0
+    for page in post_pages():
+        for item in structure(page):
+            img = item["img"]
+            if item["tag"] == "figure" and isinstance(img, dict) and "hero" in (img["src"] or ""):
+                seen += 1
+                assert "post-hero" in item["classes"], f"{page.name}: hero figure has no post-hero"
+                for dimension in ("width", "height"):
+                    assert (img.get(dimension) or "").isdigit(), f"{page.name}: hero {dimension}"
+    assert seen
+
+
+def test_feed_entries_carry_the_summary_and_no_full_content() -> None:
+    """R21: every Atom entry has title, link, id, dates, author and a non-empty summary,
+    and no content element, so images and markup stay out of feed readers."""
+    root = ElementTree.fromstring((blog_dir() / "feed.xml").read_bytes())
+    entries = root.findall(f"{ATOM}entry")
+    assert len(entries) == len(posts())
+    summaries = {post["summary"] for post in posts()}
+    for entry in entries:
+        for name in ("title", "link", "id", "published", "updated"):
+            assert entry.find(f"{ATOM}{name}") is not None, name
+        assert (entry.findtext(f"{ATOM}author/{ATOM}name") or "").strip()
+        summary = re.sub(r"</?p>", "", entry.findtext(f"{ATOM}summary") or "").strip()
+        assert summary in summaries
+        assert entry.find(f"{ATOM}content") is None
+
+
+def load_atom_summary() -> None:
+    spec = importlib.util.spec_from_file_location(
+        "atom_summary_copy", ROOT / "plugins/atom_summary.py"
+    )
+    assert spec is not None
+    assert spec.loader is not None
+    spec.loader.exec_module(importlib.util.module_from_spec(spec))
+
+
+def test_atom_summary_plugin_refuses_any_other_pelican_version(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R21: plugins/atom_summary.py copies a Pelican 4.12.0 method, so importing it under
+    another Pelican version raises and names both versions; under 4.12.0 it loads."""
+    load_atom_summary()
+    monkeypatch.setattr(pelican, "__version__", "4.12.1")
+    with pytest.raises(RuntimeError, match=r"4\.12\.0.*4\.12\.1"):
+        load_atom_summary()

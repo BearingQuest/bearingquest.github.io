@@ -39,6 +39,7 @@ NOT_PUBLISHED = {
     "Makefile",
     "README.md",
     "pelicanconf.py",
+    "plugins",
     "pyproject.toml",
     "scripts",
     "site-files.txt",

@@ -10,6 +10,8 @@ npm; Python tools come from `uv.lock`.
 - `index.html`, `about.html`, `resume.html`, `404.html` - the pages
 - `content/blog/` - the blog posts, Markdown with Pelican metadata; `assets/img/blog/` holds
   their images
+- `plugins/atom_summary.py` - the local Pelican plugin that keeps full post content out of the
+  Atom feed (it checks the Pelican version at import)
 - `pelicanconf.py`, `theme/templates/` - the Pelican settings and the blog templates
   (base, index, article); the blog output is `/blog/` (index, `<slug>.html` posts, `feed.xml`)
 - `assets/css/site.css` - the only stylesheet, including light and dark theme tokens

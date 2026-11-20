@@ -18,8 +18,9 @@ OUTPUT_PATH = "_build/blog"
 
 THEME = "theme"
 THEME_STATIC_PATHS = []
-PLUGINS = []
-PLUGIN_PATHS = []
+# plugins/atom_summary.py makes the Atom feed carry each summary and no full content.
+PLUGINS = ["atom_summary"]
+PLUGIN_PATHS = ["plugins"]
 
 TIMEZONE = "America/Chicago"
 DEFAULT_LANG = "en"

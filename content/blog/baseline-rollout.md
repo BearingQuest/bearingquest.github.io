@@ -3,7 +3,7 @@ Date: 2026-11-20
 Slug: baseline-rollout
 Summary: How I specified a 73-control engineering baseline, had Claude Code audit six repositories against it read-only, and closed every failing control through small reviewed pull requests, with every merge and setting change left to me.
 
-<figure><img src="/assets/img/blog/baseline-rollout-hero.jpg" alt="Abstract navy banner with nested outlines and an orange compass mark." width="1376" height="768"><figcaption>Header image generated with Google Gemini.</figcaption></figure>
+<figure class="post-hero"><img src="/assets/img/blog/baseline-rollout-hero.jpg" alt="Abstract navy banner with nested outlines and an orange compass mark." width="1376" height="768"><figcaption>Header image generated with Google Gemini.</figcaption></figure>
 
 My personal projects started the way most AI-assisted projects start: one repository at a time, each with whatever rules seemed right that week. By early November I had five repositories in the BearingQuest GitHub organization plus this site, and no two of them were held to the same standard. One had a pre-push secret scan, another didn't. One pinned its GitHub Actions to commit hashes, another pinned some of them. The rules that told Claude Code what it could and couldn't do differed in each.
 

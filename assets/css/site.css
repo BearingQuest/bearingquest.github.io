@@ -507,12 +507,13 @@ main {
 
 .post h1 {
   max-width: none;
-  font-size: clamp(1.9rem, 5vw, 3rem);
+  font-size: clamp(2rem, 1.4rem + 2.5vw, 2.75rem);
+  line-height: 1.1;
 }
 
 .post h2 {
-  margin-top: 2.5rem;
-  font-size: clamp(1.5rem, 3.5vw, 2rem);
+  margin-top: 3rem;
+  font-size: clamp(1.4rem, 1.15rem + 1vw, 1.75rem);
 }
 
 .post-date {
@@ -541,6 +542,13 @@ main {
   display: block;
   max-width: 100%;
   height: auto;
+}
+
+.post .post-hero img {
+  width: 100%;
+  height: min(280px, 40vw);
+  object-fit: cover;
+  object-position: center;
 }
 
 .post figcaption {

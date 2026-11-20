@@ -54,6 +54,8 @@ A new color token in `site.css` needs a row here and a source in one of those tw
 
 - Post text column at most 70 characters wide.
 - Figures span the full column width (`max-width: 100%`, `height: auto`), with a caption below in the muted colour at body size.
+- The post title (h1) is `clamp(2rem, 1.4rem + 2.5vw, 2.75rem)` with line-height 1.1; a post h2 is `clamp(1.4rem, 1.15rem + 1vw, 1.75rem)` with 3rem above. Both rules sit under `.post`, so the home page's larger h1 is unchanged. Headings stay in `--heading`.
+- The hero figure (class `post-hero`) shows as a banner strip: the image fills the column, `min(280px, 40vw)` tall, `object-fit: cover` and `object-position: center` so the compass stays in view. Its `width` and `height` attributes stay (R19); this is the one figure that doesn't use `height: auto`.
 - The publication date sits under the title, in the muted colour.
 - Orange (`--brand-accent`) is used only as decoration or for display text 24 px and up, as now.
 - Figures are drawn on a white card with a border, so they read in both themes and need no dark versions.
