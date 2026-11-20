@@ -2,7 +2,8 @@
 
 Pelican 4.12.0 has no setting for this: RSS_FEED_SUMMARY_ONLY covers RSS only, and the
 Atom branch of Writer._add_item_to_the_feed always adds the full content. So this module
-copies that method from pelican 4.12.0 (pelican/writers.py) and changes the Atom branch.
+copies that method from pelican 4.12.0 (pelican/writers.py) and changes two things: the Atom
+branch carries no content, and the title is used as is (no Markup call).
 The copy is only valid for that version, so importing it under any other Pelican raises:
 re-check the copy against the new pelican/writers.py, then update EXPECTED_PELICAN.
 """
@@ -13,7 +14,6 @@ from typing import Any
 
 import pelican
 from feedgenerator import Rss201rev2Feed, get_tag_uri
-from markupsafe import Markup
 from pelican.plugins import signals
 from pelican.utils import set_date_tzinfo
 from pelican.writers import Writer
@@ -32,8 +32,9 @@ class SummaryOnlyWriter(Writer):
     """The 4.12.0 writer, with Atom entries limited to the summary."""
 
     def _add_item_to_the_feed(self, feed: Any, item: Any) -> None:
-        # Copied as is: Markup only strips tags from the post's own title, and the feed escapes it.
-        title = Markup(item.title).striptags()  # noqa: S704
+        # Changed from 4.12.0, which uses Markup(item.title).striptags(). Our post titles hold no
+        # tags or entities (tests/test_blog.py), so striptags() would return them unchanged.
+        title = item.title
         link = self.urljoiner(self.site_url, item.url)
 
         if self.settings["FEED_APPEND_REF"]:

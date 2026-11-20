@@ -420,6 +420,14 @@ def test_feed_entries_carry_the_summary_and_no_full_content() -> None:
         assert entry.find(f"{ATOM}content") is None
 
 
+def test_post_titles_are_plain_text() -> None:
+    """R21: no post title has a tag, an entity or repeated whitespace, so the feed can use the
+    title as is, which is what Markup(title).striptags() would return (Semgrep alert 11)."""
+    for post in posts():
+        title = post["title"]
+        assert not re.search(r"[<>&]|\s{2}", title), f"{post['slug']}: {title!r}"
+
+
 def load_atom_summary() -> None:
     spec = importlib.util.spec_from_file_location(
         "atom_summary_copy", ROOT / "plugins/atom_summary.py"
