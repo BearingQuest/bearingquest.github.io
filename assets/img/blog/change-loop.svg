@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 520" width="860" height="520" role="img" aria-labelledby="t d">
+<title id="t">How a change ran during the rollout</title>
+<desc id="d">Dusten pastes a prompt into Claude Code; Claude Code returns a plan; Claude in chat reviews it and sends changes back through Dusten; Claude Code builds and opens a pull request; GitHub runs the checks and the Claude review; Dusten applies any ruleset change and merges.</desc>
+<defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#B4501F"/></marker></defs>
+<rect x="0.5" y="0.5" width="859" height="519" rx="12" fill="#FFFFFF" stroke="#D5DBE2"/>
+<text x="32" y="44" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="22" font-weight="700" fill="#1B365D">One change, four roles</text>
+<rect x="330" y="70" width="210" height="96" rx="10" fill="#1B365D" stroke="#1B365D" stroke-width="1.5"/>
+<text x="435.0" y="102" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="17" font-weight="700" fill="#FFFFFF" text-anchor="middle">Dusten</text>
+<text x="435.0" y="126" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="12.5" fill="#E1E7EE" text-anchor="middle">decides, runs every setting,</text>
+<text x="435.0" y="144" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="12.5" fill="#E1E7EE" text-anchor="middle">reviews, merges</text>
+<rect x="600" y="210" width="210" height="96" rx="10" fill="#F4F6F8" stroke="#1B365D" stroke-width="1.5"/>
+<text x="705.0" y="242" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="17" font-weight="700" fill="#1B365D" text-anchor="middle">Claude (chat)</text>
+<text x="705.0" y="266" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="12.5" fill="#3A3D40" text-anchor="middle">reviews plans and diffs,</text>
+<text x="705.0" y="284" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="12.5" fill="#3A3D40" text-anchor="middle">writes prompts, keeps the record</text>
+<rect x="330" y="380" width="210" height="96" rx="10" fill="#F4F6F8" stroke="#1B365D" stroke-width="1.5"/>
+<text x="435.0" y="412" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="17" font-weight="700" fill="#1B365D" text-anchor="middle">Claude Code</text>
+<text x="435.0" y="433" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="12.5" fill="#3A3D40" text-anchor="middle">audits read-only, plans,</text>
+<text x="435.0" y="449" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="12.5" fill="#3A3D40" text-anchor="middle">builds in the sandbox,</text>
+<text x="435.0" y="465" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="12.5" fill="#3A3D40" text-anchor="middle">stops before commit</text>
+<rect x="60" y="210" width="210" height="96" rx="10" fill="#F4F6F8" stroke="#1B365D" stroke-width="1.5"/>
+<text x="165.0" y="242" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="17" font-weight="700" fill="#1B365D" text-anchor="middle">GitHub</text>
+<text x="165.0" y="266" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="12.5" fill="#3A3D40" text-anchor="middle">required checks, Claude review,</text>
+<text x="165.0" y="284" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="12.5" fill="#3A3D40" text-anchor="middle">rulesets, deploy approval</text>
+<line x1="470" y1="166" x2="470" y2="380" stroke="#B4501F" stroke-width="2" marker-end="url(#a)"/>
+<text x="482" y="280" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="13" font-weight="700" fill="#B4501F">1 prompt</text>
+<line x1="395" y1="380" x2="395" y2="166" stroke="#B4501F" stroke-width="2" marker-end="url(#a)"/>
+<text x="300" y="280" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="13" font-weight="700" fill="#B4501F">2 plan / report</text>
+<line x1="540" y1="118" x2="640" y2="210" stroke="#B4501F" stroke-width="2" marker-end="url(#a)"/>
+<text x="605" y="150" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="13" font-weight="700" fill="#B4501F">3 to review</text>
+<line x1="700" y1="306" x2="545" y2="400" stroke="#B4501F" stroke-width="2" marker-end="url(#a)"/>
+<text x="640" y="375" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="13" font-weight="700" fill="#B4501F">4 changes, pasted</text>
+<text x="640" y="391" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="13" font-weight="700" fill="#B4501F">by Dusten</text>
+<line x1="330" y1="428" x2="200" y2="306" stroke="#B4501F" stroke-width="2" marker-end="url(#a)"/>
+<text x="170" y="385" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="13" font-weight="700" fill="#B4501F">5 branch + PR</text>
+<line x1="165" y1="210" x2="330" y2="110" stroke="#B4501F" stroke-width="2" marker-end="url(#a)"/>
+<text x="84" y="140" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="13" font-weight="700" fill="#B4501F">6 checks green;</text>
+<text x="84" y="156" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="13" font-weight="700" fill="#B4501F">Dusten merges</text>
+<text x="32" y="502" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="13" fill="#5B6B7F">Agents never merge, push to main, change rulesets or secrets, or approve a deploy.</text>
+</svg>

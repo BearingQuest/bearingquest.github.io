@@ -8,6 +8,7 @@ from urllib.parse import unquote, urlsplit
 
 import yaml
 from _proc import run
+from _site import built_site
 
 ROOT = Path(__file__).resolve().parents[1]
 SITE_FILES = ROOT / "site-files.txt"
@@ -32,14 +33,17 @@ NOT_PUBLISHED = {
     "AGENTS.md",
     "CLAUDE.md",
     "CNAME",
+    "content",
     "docs",
     "LICENSE",
     "Makefile",
     "README.md",
+    "pelicanconf.py",
     "pyproject.toml",
     "scripts",
     "site-files.txt",
     "tests",
+    "theme",
     "uv.lock",
 }
 # Repo files that must never reach the site, whether or not they exist yet.
@@ -51,10 +55,13 @@ NEVER_PUBLISHED = {
     "CLAUDE.md",
     "Makefile",
     "README.md",
+    "content",
     "docs",
+    "pelicanconf.py",
     "pyproject.toml",
     "scripts",
     "tests",
+    "theme",
     "uv.lock",
 }
 
@@ -169,9 +176,18 @@ def resolve_local(source: str, link: str) -> str | None:
     return resolved
 
 
+def blog_files() -> set[str]:
+    """The files Pelican adds under blog/, taken from the built site."""
+    site = built_site()
+    return {
+        path.relative_to(site).as_posix() for path in (site / "blog").rglob("*") if path.is_file()
+    }
+
+
 def test_published_links_resolve_inside_the_published_set() -> None:
-    published = published_files()
-    pages = sorted(name for name in published if name.endswith(".html"))
+    """R2, R9: the hand-written pages' links, blog/ included, resolve inside what deploys."""
+    published = published_files() | blog_files()
+    pages = sorted(name for name in published_files() if name.endswith(".html"))
     assert pages
     for page in pages:
         parser = LinkParser()
@@ -230,6 +246,8 @@ def test_build_calls_the_copy_script_and_uploads_the_artifact() -> None:
     copy = [step for step in steps if "run" in step]
     assert len(copy) == 1
     assert copy[0]["run"].strip() == "bash scripts/build-site.sh _site"
+    # The Pages build leaves the dev group (test tools) out of the blog build.
+    assert copy[0]["env"] == {"BLOG_NO_DEV": "1"}
     upload = [
         step for step in steps if step.get("uses", "").startswith("actions/upload-pages-artifact@")
     ]
@@ -245,10 +263,30 @@ def test_build_script_reads_only_site_files_and_fails_closed() -> None:
     assert text.startswith("#!/bin/bash\n")
     assert "set -euo pipefail" in text
     assert "done < site-files.txt" in text
-    assert text.count("cp -R") == 1
+    # One copy for the site-files.txt paths, one for the Pelican blog output.
+    assert text.count("cp -R") == 2
+    assert 'cp -R _build/blog "$out/blog"' in text
     # Rejects absolute and hidden paths, missing paths and symlinks.
     for guard in ("/* | .* | */.*)", '[ -L "$path" ] || [ ! -e "$path" ]', 'find "$out" -type l'):
         assert guard in text, guard
+
+
+BLOG_SCRIPT = ROOT / "scripts/build-blog.sh"
+
+
+def test_blog_build_script_follows_repo_06_and_is_run_through_its_shebang() -> None:
+    """R20, REPO-06: build-blog.sh is portable bash, runs the locked Pelican and fails on
+    any warning."""
+    text = BLOG_SCRIPT.read_text(encoding="utf-8")
+    assert text.startswith("#!/usr/bin/env bash\n")
+    assert "set -euo pipefail" in text
+    assert BLOG_SCRIPT.stat().st_mode & 0o111, "build-blog.sh is not executable"
+    for bash4 in ("declare -A", "mapfile", "readarray", ",,}", "^^}", "|&", "&>>", ";&"):
+        assert bash4 not in text, bash4
+    assert 'uv run --locked "$@" pelican content -s pelicanconf.py' in text
+    assert "--fatal warnings" in text
+    site = BUILD_SCRIPT.read_text(encoding="utf-8")
+    assert "scripts/build-blog.sh --no-dev" in site and "scripts/build-blog.sh >&2" in site
 
 
 def test_build_script_output_is_the_published_set_and_no_repo_files(tmp_path: Path) -> None:
@@ -256,7 +294,10 @@ def test_build_script_output_is_the_published_set_and_no_repo_files(tmp_path: Pa
     out = tmp_path / "site"
     run(["bash", str(BUILD_SCRIPT), str(out)], cwd=tmp_path, check=True, capture_output=True)
     built = {path.relative_to(out).as_posix() for path in out.rglob("*") if path.is_file()}
-    assert built == published_files()
+    blog = blog_files()
+    assert built - {name for name in built if name.startswith("blog/")} == published_files()
+    assert {name for name in built if name.startswith("blog/")} == blog
+    assert "blog/index.html" in blog and "blog/feed.xml" in blog
     for name in built:
         assert PurePosixPath(name).parts[0] not in NEVER_PUBLISHED | {"CNAME", ".nojekyll"}, name
     # An existing output directory is an error, as the old inline `mkdir _site` was.
@@ -273,7 +314,7 @@ def test_jobs_are_pinned_timed_and_on_a_fixed_image() -> None:
             if step.get("uses", "").startswith("actions/checkout@"):
                 assert step["with"]["persist-credentials"] is False, name
     uses_lines = re.findall(r"uses:\s*(\S+)(.*)", WORKFLOW_TEXT)
-    assert len(uses_lines) == 3
+    assert len(uses_lines) == 4
     for action, comment in uses_lines:
         assert re.fullmatch(r"[\w.-]+/[\w.-]+@[0-9a-f]{40}", action), action
         assert re.fullmatch(r"\s*# v\d+\.\d+\.\d+", comment), action

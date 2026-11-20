@@ -13,10 +13,7 @@ from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 import pytest
-from _proc import run
-
-ROOT = Path(__file__).resolve().parents[2]
-BUILD_SCRIPT = ROOT / "scripts" / "build-site.sh"
+from _site import built_site
 
 
 class PagesHandler(SimpleHTTPRequestHandler):
@@ -41,10 +38,8 @@ class PagesHandler(SimpleHTTPRequestHandler):
 
 
 @pytest.fixture(scope="session")
-def site_dir(tmp_path_factory: pytest.TempPathFactory) -> Path:
-    out = tmp_path_factory.mktemp("e2e") / "_site"
-    run(["bash", str(BUILD_SCRIPT), str(out)], check=True, capture_output=True)
-    return out
+def site_dir() -> Path:
+    return built_site()
 
 
 @pytest.fixture(scope="session")

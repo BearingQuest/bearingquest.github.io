@@ -2,7 +2,9 @@ name: Pages
 
 # Publishes the site to GitHub Pages. Only the paths listed in site-files.txt
 # are copied into the artifact, so repo files such as AGENTS.md, tests/ and
-# .github/ never reach bearingquest.com. The build job also runs on pull
+# .github/ never reach bearingquest.com. The blog is the one generated part:
+# Pelican builds content/blog into /blog/ from the locked "site" dependency
+# group (the dev group is left out). The build job also runs on pull
 # requests to prove the copy step; only a push to main or a manual run on
 # main deploys. The custom domain comes from the repository's Pages settings, not
 # from the CNAME file, which stays in the repo (unpublished) as the
@@ -30,7 +32,16 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - name: Copy the paths in site-files.txt into _site
+      # Caching is off: this job's output is published, so it must not restore
+      # a cache a pull request could have written.
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          version: "0.13.1"
+          enable-cache: false
+      # uv installs the Python named in .python-version, then Pelican from uv.lock.
+      - name: Copy the paths in site-files.txt into _site and build the blog with Pelican
+        env:
+          BLOG_NO_DEV: "1"
         run: bash scripts/build-site.sh _site
       - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:

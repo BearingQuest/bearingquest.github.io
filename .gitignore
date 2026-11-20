@@ -13,3 +13,4 @@ dist/
 .claude/settings.local.json
 # Written by `make audit` and the CI pip-audit job.
 requirements-audit.txt
+_build/

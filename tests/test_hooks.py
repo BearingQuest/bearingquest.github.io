@@ -223,3 +223,9 @@ def test_makefile_check_and_hooks_recipes() -> None:
         "uv run pytest",
     ]
     assert recipe("hooks") == ["git config core.hooksPath .githooks"]
+
+
+def test_makefile_blog_runs_the_blog_build_script() -> None:
+    """R20: make blog runs scripts/build-blog.sh and prints where the blog was built."""
+    assert recipe("blog")[0] == "scripts/build-blog.sh"
+    assert "_build/blog" in recipe("blog")[1]

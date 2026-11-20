@@ -14,9 +14,11 @@ PAGES = [
     ("/index.html", 200),
     ("/about.html", 200),
     ("/resume.html", 200),
+    ("/blog/", 200),
+    ("/blog/baseline-rollout.html", 200),
     ("/a/b/c", 404),
 ]
-NAV_HREFS = {"index.html", "about.html", "resume.html"}
+NAV_HREFS = {"index.html", "about.html", "resume.html", "blog/"}
 RECORD_CSP_VIOLATIONS = """
 window.__csp = [];
 document.addEventListener("securitypolicyviolation", (event) => {
@@ -93,7 +95,7 @@ def test_tab_reaches_the_theme_switch_and_every_nav_link_with_a_focus_indicator(
                 }"""
             )
         )
-    nav = {item["href"].rsplit("/", 1)[-1]: item for item in focused if item["href"]}
+    nav = {item["href"].lstrip("/"): item for item in focused if item["href"]}
     assert set(nav) >= NAV_HREFS
     theme = [item for item in focused if item["theme"]]
     assert theme, "Tab never reached the theme switch"

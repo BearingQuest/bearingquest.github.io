@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Blog{% endblock %}
+{% block description %}Posts by Dusten Harrison on governing AI coding agents, and links to earlier posts on Blogger.{% endblock %}
+{% block content %}
+      <section class="hero hero--compact" aria-labelledby="page-title">
+        <h1 id="page-title">Blog</h1>
+      </section>
+      <section class="post-list" aria-labelledby="posts-heading">
+        <h2 id="posts-heading">Posts</h2>
+        <ul>
+{% for article in articles %}
+          <li>
+            <h3><a href="/blog/{{ article.url }}">{{ article.title }}</a></h3>
+            <p class="post-date"><time datetime="{{ article.date.strftime('%Y-%m-%d') }}">{{ article.date.strftime('%-d %B %Y') }}</time></p>
+            <p>{{ article.summary | striptags }}</p>
+          </li>
+{% endfor %}
+        </ul>
+        <p><a href="/blog/feed.xml">Atom feed</a></p>
+      </section>
+      <section class="post-list" aria-labelledby="earlier-heading">
+        <h2 id="earlier-heading">Earlier posts (on Blogger)</h2>
+        <ul>
+          <li><a href="https://dustenharrison.blogspot.com/2026/10/shifting-security-left-when-developer.html" rel="noopener noreferrer">Shifting Security Left When the Developer Is an AI Agent <span aria-hidden="true">↗</span></a> <span class="post-date">28 October 2026</span></li>
+          <li><a href="https://dustenharrison.blogspot.com/2026/10/what-building-production-app-with-ai.html" rel="noopener noreferrer">Building Risk Trainer with an AI team <span aria-hidden="true">↗</span></a> <span class="post-date">11 October 2026</span></li>
+        </ul>
+      </section>
+{% endblock %}

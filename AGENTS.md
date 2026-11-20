@@ -1,17 +1,22 @@
 # Bearing Quest website
 
-Hand-written static site deployed to bearingquest.com by
-`.github/workflows/pages.yml`, which publishes only the paths listed in
-`site-files.txt`. There is no build step (the workflow only copies files), no
-package manager and no npm.
+Static site deployed to bearingquest.com by `.github/workflows/pages.yml`, which
+publishes the paths listed in `site-files.txt` plus the blog that Pelican builds
+from `content/blog`. The pages are hand-written; only the blog is generated. There is no
+npm; Python tools come from `uv.lock`.
 
 ## Layout
 
 - `index.html`, `about.html`, `resume.html`, `404.html` - the pages
+- `content/blog/` - the blog posts, Markdown with Pelican metadata; `assets/img/blog/` holds
+  their images
+- `pelicanconf.py`, `theme/templates/` - the Pelican settings and the blog templates
+  (base, index, article); the blog output is `/blog/` (index, `<slug>.html` posts, `feed.xml`)
 - `assets/css/site.css` - the only stylesheet, including light and dark theme tokens
 - `assets/js/theme.js` - the only script (theme switch)
 - `assets/img/` - images, including the Bearing Quest mark and lockup SVGs
-- `tests/test_site.py` - pytest checks for the site
+- `tests/test_site.py` - pytest checks for the site, run over the built site (`tests/_site.py`
+  builds it once per session); `tests/test_blog.py` checks the blog (R17-R21)
 - `tests/test_design.py` - pytest checks that the CSS tokens, logos, screens and card edges
   match `docs/design.md` and `docs/design/`
 - `tests/test_pages_deploy.py` - pytest checks for `site-files.txt` and `pages.yml`
@@ -22,9 +27,10 @@ package manager and no npm.
 - `tests/test_workflows.py` - pytest checks for every workflow and the ruleset files
 - `tests/e2e/` - Chromium tests of the built site (`make e2e`), marked `e2e`
 - `tests/_proc.py` - the only place the tests start a process
-- `scripts/build-site.sh` - copies the `site-files.txt` paths into one directory;
-  `pages.yml` and the e2e tests both run it
-- `Makefile` - `make check` (ruff and pytest), `make e2e` (browser tests),
+- `scripts/build-site.sh` - copies the `site-files.txt` paths into one directory and adds
+  the Pelican blog build (`scripts/build-blog.sh`, output `_build/blog`, gitignored) as
+  `blog/`; `pages.yml` and the tests both run it
+- `Makefile` - `make check` (ruff and pytest), `make blog` (build the blog), `make e2e` (browser tests),
   `make audit` (pip-audit, as in CI), `make hooks` (installs `.githooks/`);
   `make help` lists them
 - `.githooks/pre-push` - runs gitleaks on the commits being pushed
@@ -40,7 +46,7 @@ package manager and no npm.
 - `.github/pull_request_template.md` - the pull request body: Summary, then
   Requirements
 - `docs/decisions.md` - one row per plan change, approved exception or new tool
-- `docs/PRD.md` - the numbered product requirements (R1-R16)
+- `docs/PRD.md` - the numbered product requirements (R1-R23)
 - `docs/design.md` - how the site uses the design system; UI work follows it
 - `docs/design/` - `tokens.json`, `site-layer.json`, logos, accepted screens and the
   reference stylesheet
@@ -77,7 +83,8 @@ artifact. Its `build` job runs on every pull request and push to `main`; its
 ## Rules
 
 - Static HTML, CSS and same-origin JavaScript only.
-- No frameworks, CDNs, third-party scripts or analytics.
+- No frameworks, CDNs, third-party scripts or analytics. Pelican is the only generator,
+  and only for the blog; its output is static HTML.
 - No inline `<script>` content, `<style>` elements or `style=` attributes.
 - Keep the exact Content-Security-Policy meta tag on every page.
 - Never invent content for `[TODO: ...]` placeholders. Leave them as they are.
@@ -89,10 +96,24 @@ artifact. Its `build` job runs on every pull request and push to `main`; its
 - Run every `gh` command on its own: no `cd`, `&&`, `;`, pipes or redirects. You
   already start in the repo. Only a plain `gh` call runs outside the sandbox, where it
   can read its login.
+- Push a branch with `git push origin <branch>`. Never use `-u` or
+  `--set-upstream`: the sandbox can't write `.git/config`, so the push fails.
+- A test that needs a pseudo-terminal (pty) skips outside CI, with the reason in
+  the skip message, and runs in CI. The sandbox can't allocate a pty.
+- A script that starts a browser outside the e2e container (for example a
+  screenshot script) is run by the owner in a plain Terminal after reading it.
+  The sandbox can't start Chromium on macOS. Say so in the plan; don't try it.
+- Don't add `sandbox.network.allowLocalBinding` unless this repo's tests start a
+  local server; if they do, propose it in the plan with a decisions row.
+- When a planned change first adds a Python package or `docs/PRD.md` to a repo
+  that had none, a GUI, a GitHub Pages site, a release workflow or the first
+  release, or an AWS deploy or `infra/`, say in the plan that a baseline re-audit
+  is due and name the controls that start to apply. The owner decides when to
+  run it.
 - Work on a branch. Never push to `main` and never merge.
 - When you open a pull request, fill in every section of
   `.github/pull_request_template.md`, in the same order, in the PR body. Cite PRD IDs
-  (R1-R16, from `docs/PRD.md`) in the template's Requirements line.
+  (R1-R23, from `docs/PRD.md`) in the template's Requirements line.
 
 ## Human gates: agents never do these
 
