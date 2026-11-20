@@ -17,6 +17,7 @@ from defusedxml import ElementTree
 ROOT = Path(__file__).resolve().parents[1]
 POSTS_DIR = ROOT / "content/blog"
 IMAGES_DIR = ROOT / "assets/img/blog"
+BLOGGER_HOST = "dustenharrison.blogspot.com"
 FEED_PREFIX = "https://bearingquest.com/blog/"
 ATOM = "{http://www.w3.org/2005/Atom}"
 MAX_RASTER_BYTES = 400 * 1024
@@ -239,6 +240,16 @@ def test_uv_lock_keeps_pygments_at_2_20_or_newer() -> None:
     assert "pygments>=2.20.0" in overrides, "the pygments override is gone from pyproject.toml"
 
 
+def test_pyproject_keeps_the_uv_dependency_cooldown() -> None:
+    """R20: [tool.uv] keeps exclude-newer = "7 days" (Semgrep rule
+    package_managers.uv.uv-missing-dependency-cooldown), and uv.lock records the 7-day span,
+    so a release younger than 7 days is never locked."""
+    project = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
+    assert project["tool"]["uv"].get("exclude-newer") == "7 days", "the uv cooldown is gone"
+    lock = tomllib.loads((ROOT / "uv.lock").read_text(encoding="utf-8"))
+    assert lock["options"]["exclude-newer-span"] == "P7D"
+
+
 def test_index_lists_every_post_newest_first_and_every_page_is_listed() -> None:
     """R17: each post is on the index with title, date and summary, newest first, and
     each built post page is listed; the Blogger posts follow."""
@@ -254,12 +265,19 @@ def test_index_lists_every_post_newest_first_and_every_page_is_listed() -> None:
         assert post["summary"] in text
         assert re.search(rf'<time datetime="{post["date"]}"', html)
     assert html.index("Earlier posts (on Blogger)") > html.rindex("<h3>")
-    blogger = [
-        href
+    # Parsed, not substring-matched: a Blogger link is https and on exactly this host, and
+    # no other external link may appear on the index besides the footer's two profiles.
+    external = [
+        urlsplit(href)
         for href in re.findall(r'href="([^"]+)"', html)
-        if "dustenharrison.blogspot.com" in href
+        if urlsplit(href).scheme or urlsplit(href).netloc
     ]
-    assert len(blogger) == 2
+    profiles = {"https://github.com/BearingQuest", "https://www.linkedin.com/in/dustenharrison"}
+    other = [url for url in external if url.geturl() not in profiles]
+    assert len(other) == 2, [url.geturl() for url in other]
+    for url in other:
+        assert url.scheme == "https", url.geturl()
+        assert url.hostname == BLOGGER_HOST, url.geturl()
 
 
 def paragraphs(body: str) -> list[str]:
