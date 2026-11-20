@@ -190,3 +190,33 @@ def test_register_and_dossier_cards_edge_in_primary_and_dnx_accent() -> None:
         )
         for label, (_, block) in token_blocks(css).items():
             assert re.search(rf"--{token}:\s*#[0-9a-fA-F]+;", block), f"{label} has no --{token}"
+
+
+def css_rules() -> dict[str, dict[str, str]]:
+    """Top-level rules of site.css by selector (comma lists split), declarations by property."""
+    rules: dict[str, dict[str, str]] = {}
+    for selectors, body in re.findall(r"(?m)^([^\s@}][^{}]*)\{([^{}]*)\}", CSS_PATH.read_text()):
+        declarations = dict(re.findall(r"([\w-]+)\s*:\s*([^;]+);", body))
+        for selector in selectors.split(","):
+            rules.setdefault(selector.strip(), {}).update(declarations)
+    return rules
+
+
+def test_blog_heading_and_hero_rules_are_scoped_to_the_post() -> None:
+    """R17, R19: the blog's heading sizes and hero strip are under .post, so the global h1 and
+    h2 rules (the home page's sizes) are unchanged."""
+    rules = css_rules()
+    assert rules["h1"]["font-size"] == "clamp(2.5rem, 9vw, 5.75rem)"
+    assert rules["h2"]["font-size"] == "clamp(1.75rem, 4vw, 2.65rem)"
+    assert rules["h1"]["max-width"] == "14ch"
+    assert rules["h2"]["margin-top"] == "0"
+    assert rules[".post h1"]["font-size"] == "clamp(2rem, 1.4rem + 2.5vw, 2.75rem)"
+    assert rules[".post h1"]["line-height"] == "1.1"
+    assert rules[".post h2"]["font-size"] == "clamp(1.4rem, 1.15rem + 1vw, 1.75rem)"
+    assert rules[".post h2"]["margin-top"] == "3rem"
+    hero = rules[".post .post-hero img"]
+    assert hero["height"] == "min(280px, 40vw)"
+    assert hero["object-fit"] == "cover"
+    assert hero["object-position"] == "center"
+    unscoped = [s for s in rules if "post" in s and not s.startswith((".post", ".post-"))]
+    assert not unscoped, unscoped
