@@ -43,6 +43,18 @@ jobs:
         env:
           BLOG_NO_DEV: "1"
         run: bash scripts/build-site.sh _site
+      # R22: CycloneDX SBOM of the locked site group (the same command as make sbom);
+      # the dev group is left out.
+      - name: Write the SBOM of the site dependency group
+        run: |
+          mkdir -p _build
+          uv export --locked --format cyclonedx1.5 --only-group site --no-emit-project --output-file _build/sbom-site.cdx.json
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: sbom-site
+          path: _build/sbom-site.cdx.json
+          retention-days: 90
+          if-no-files-found: error
       - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
           path: _site/
@@ -66,3 +78,32 @@ jobs:
     steps:
       - id: deployment
         uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
+
+  # R23: read-only check of the live site after a deploy. A failure here does not roll
+  # the deploy back; it alerts by failing the run. Pages caches for up to about 10
+  # minutes, so the check retries for up to 3 minutes before it gives up.
+  smoke:
+    name: smoke
+    needs: deploy
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    # Only the newest deploy's check matters, so a newer run cancels an older one.
+    concurrency:
+      group: pages-smoke
+      cancel-in-progress: true
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          version: "0.13.1"
+          enable-cache: false
+      - name: Check the live site, retrying for up to 3 minutes
+        run: |
+          for attempt in 1 2 3 4; do
+            uv run --no-project python3 scripts/smoke.py && exit 0
+            [ "$attempt" -lt 4 ] && sleep 45
+          done
+          exit 1

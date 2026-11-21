@@ -1,0 +1,36 @@
+name: smoke
+
+# R23: daily read-only check of the live site, the same script that pages.yml runs after
+# a deploy. It fetches five fixed URLs on bearingquest.com and fails the run if any is
+# down, has the wrong title or content type, or lacks the CSP meta tag.
+# GitHub disables scheduled workflows in a public repo after 60 days with no
+# repository activity; re-enable it from the Actions tab if that happens.
+
+on:
+  schedule:
+    - cron: "41 8 * * *" # 08:41 UTC, off the quarter hour (those runs can be delayed)
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# One check at a time; a manual run never cancels the scheduled one.
+concurrency:
+  group: smoke
+  cancel-in-progress: false
+
+jobs:
+  smoke:
+    name: smoke
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          version: "0.13.1"
+          enable-cache: false
+      - name: Check the live site
+        run: uv run --no-project python3 scripts/smoke.py

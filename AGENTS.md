@@ -22,6 +22,8 @@ npm; Python tools come from `uv.lock`.
 - `tests/test_design.py` - pytest checks that the CSS tokens, logos, screens and card edges
   match `docs/design.md` and `docs/design/`
 - `tests/test_pages_deploy.py` - pytest checks for `site-files.txt` and `pages.yml`
+- `tests/test_sbom.py`, `tests/test_smoke.py` - pytest checks for the build SBOM (R22) and the
+  smoke script (R23; no network)
 - `tests/test_hooks.py` - pytest checks for the pre-push hook and the Makefile
 - `tests/test_claude_settings.py` - pytest checks that `.claude/settings.json` keeps every
   deny, ask and sandbox rule (each `Bash(cmd *)` with its bare `Bash(cmd)`), excludes only `gh`
@@ -29,11 +31,13 @@ npm; Python tools come from `uv.lock`.
 - `tests/test_workflows.py` - pytest checks for every workflow and the ruleset files
 - `tests/e2e/` - Chromium tests of the built site (`make e2e`), marked `e2e`
 - `tests/_proc.py` - the only place the tests start a process
+- `scripts/smoke.py` - the R23 check of five live URLs, standard library only (`make smoke`)
 - `scripts/build-site.sh` - copies the `site-files.txt` paths into one directory and adds
   the Pelican blog build (`scripts/build-blog.sh`, output `_build/blog`, gitignored) as
   `blog/`; `pages.yml` and the tests both run it
 - `Makefile` - `make check` (ruff and pytest), `make blog` (build the blog), `make e2e` (browser tests),
-  `make audit` (pip-audit, as in CI), `make hooks` (installs `.githooks/`);
+  `make audit` (pip-audit, as in CI), `make sbom` (CycloneDX SBOM of the `site`
+  group into `_build/`), `make smoke` (the live-site check), `make hooks` (installs `.githooks/`);
   `make help` lists them
 - `.githooks/pre-push` - runs gitleaks on the commits being pushed
 - `site-files.txt` - the only paths published to the site; every tracked root
@@ -42,7 +46,8 @@ npm; Python tools come from `uv.lock`.
 - `.github/` - CI workflows, Dependabot configuration and `rulesets/` (ruleset
   JSON for the owner to apply; agents never apply it)
 - `.github/workflows/` - `ci.yml` (the six required checks), `pages.yml`
-  (build and deploy), `pip-audit-daily.yml`, `scorecard.yml`, `claude-review.yml`
+  (build, deploy and the post-deploy smoke check; the build uploads the `sbom-site` artifact),
+  `pip-audit-daily.yml`, `smoke.yml` (daily smoke check), `scorecard.yml`, `claude-review.yml`
 - `.claude/settings.json` - the permission rules and the sandbox pilot (agents never edit it). The `Explore` and `test-runner` subagents are user-level, in `~/.claude/agents/`.
 - `.github/SECURITY.md` - how to report a vulnerability privately
 - `.github/pull_request_template.md` - the pull request body: Summary, then
