@@ -360,7 +360,10 @@ def test_claude_review_turns_the_sandbox_off_and_keeps_one_tool() -> None:
     assert args[args.index("--allowedTools") + 1 :] == [
         "mcp__github_inline_comment__create_inline_comment"
     ]
-    assert args.count("--settings") + args.count("--allowedTools") == len(
+    # The model is an exact ID, never an alias, so it changes only through a reviewed PR.
+    assert args.count("--model") == 1
+    assert args[args.index("--model") + 1] == "claude-sonnet-5-5"
+    assert args.count("--settings") + args.count("--allowedTools") + args.count("--model") == len(
         [a for a in args if a.startswith("--")]
     )
 
@@ -436,9 +439,56 @@ def test_pages_build_installs_uv_pinned_with_caching_off_and_reads_only() -> Non
     assert SHA_PIN.fullmatch(setup[0]["uses"])
     assert setup[0]["with"]["enable-cache"] is False
     runs = [s for s in build["steps"] if "run" in s]
-    assert [s["run"].strip() for s in runs] == ["bash scripts/build-site.sh _site"]
+    # The second run step is the R22 SBOM (tests/test_sbom.py checks it).
+    assert runs[0]["run"].strip() == "bash scripts/build-site.sh _site"
+    assert len(runs) == 2
     assert runs[0]["env"] == {"BLOG_NO_DEV": "1"}
     order = [s.get("uses", "").split("@")[0] or "run" for s in build["steps"]]
     assert order.index("astral-sh/setup-uv") < order.index("run")
     deploy = workflow["jobs"]["deploy"]
     assert deploy["permissions"] == {"pages": "write", "id-token": "write"}
+
+
+SMOKE = WORKFLOW_DIR / "smoke.yml"
+SMOKE_COMMAND = "uv run --no-project python3 scripts/smoke.py"
+MAIN_ONLY = "github.event_name != 'pull_request' && github.ref == 'refs/heads/main'"
+
+
+def smoke_jobs() -> list[tuple[str, dict[str, Any], dict[str, Any]]]:
+    """The two places that run the R23 check: (file name, workflow, job)."""
+    return [
+        ("pages.yml", load(PAGES), load(PAGES)["jobs"]["smoke"]),
+        ("smoke.yml", load(SMOKE), only_job(SMOKE)),
+    ]
+
+
+def test_smoke_runs_after_each_deploy_and_daily_on_a_schedule() -> None:
+    """R23: pages.yml runs the check after a deploy on main; smoke.yml runs it daily."""
+    after = load(PAGES)["jobs"]["smoke"]
+    assert after["needs"] == "deploy"
+    assert after["if"] == MAIN_ONLY == load(PAGES)["jobs"]["deploy"]["if"]
+    triggers = on_block(SMOKE)
+    assert set(triggers) == {"schedule", "workflow_dispatch"}  # never workflow_run
+    (entry,) = triggers["schedule"]
+    minute, *rest = entry["cron"].split()
+    assert minute.isdigit() and int(minute) not in {0, 15, 30, 45}
+    assert rest[0].isdigit() and rest[1:] == ["*"] * 3  # once a day
+    assert "workflow_run" not in SMOKE.read_text(encoding="utf-8")
+
+
+def test_smoke_jobs_are_read_only_timed_secretless_and_run_the_same_script() -> None:
+    for name, workflow, job in smoke_jobs():
+        # Inherited, never set on the job: the effective permission is contents: read.
+        assert workflow["permissions"] == {"contents": "read"}, name
+        assert "permissions" not in job, name
+        assert job["runs-on"] == "ubuntu-24.04", name
+        assert job["timeout-minutes"] == 10, name
+        steps = job["steps"]
+        checkout = [s for s in steps if s.get("uses", "").startswith("actions/checkout@")]
+        assert [s["with"]["persist-credentials"] for s in checkout] == [False], name
+        runs = [s for s in steps if "run" in s]
+        assert len(runs) == 1 and SMOKE_COMMAND in runs[0]["run"], name
+        assert "env" not in job and all("env" not in s for s in steps), name
+    for path in (PAGES, SMOKE):
+        text = path.read_text(encoding="utf-8")
+        assert "secrets." not in text and "secrets[" not in text, path.name

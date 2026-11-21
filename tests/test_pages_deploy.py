@@ -212,7 +212,7 @@ def test_workflow_triggers() -> None:
 
 
 def test_build_runs_everywhere_and_deploy_only_outside_pull_requests() -> None:
-    assert set(JOBS) == {"build", "deploy"}
+    assert set(JOBS) == {"build", "deploy", "smoke"}
     assert "if" not in JOBS["build"]
     assert JOBS["deploy"]["needs"] == "build"
     # The ref check stops a manual run on another branch from deploying, even
@@ -229,6 +229,8 @@ def test_build_runs_everywhere_and_deploy_only_outside_pull_requests() -> None:
 def test_only_the_deploy_job_has_write_permissions() -> None:
     assert WORKFLOW["permissions"] == {"contents": "read"}
     assert "permissions" not in JOBS["build"]
+    # The smoke job inherits contents: read; it never sets its own grant.
+    assert "permissions" not in JOBS["smoke"]
     assert JOBS["deploy"]["permissions"] == {"pages": "write", "id-token": "write"}
     for grant in ("pages", "id-token"):
         assert re.search(rf"^\s+{grant}: write # \S", WORKFLOW_TEXT, re.MULTILINE), (
@@ -242,10 +244,15 @@ def test_deploys_are_serialized_and_never_cancelled() -> None:
     assert JOBS["build"]["concurrency"]["group"] != "pages"
 
 
+def test_smoke_job_keeps_only_the_newest_check() -> None:
+    # Only the newest deploy's smoke check matters, so a newer run cancels an older one.
+    assert JOBS["smoke"]["concurrency"] == {"group": "pages-smoke", "cancel-in-progress": True}
+
+
 def test_build_calls_the_copy_script_and_uploads_the_artifact() -> None:
     steps = JOBS["build"]["steps"]
     copy = [step for step in steps if "run" in step]
-    assert len(copy) == 1
+    assert len(copy) == 2  # the site build, then the SBOM (tests/test_sbom.py)
     assert copy[0]["run"].strip() == "bash scripts/build-site.sh _site"
     # The Pages build leaves the dev group (test tools) out of the blog build.
     assert copy[0]["env"] == {"BLOG_NO_DEV": "1"}
@@ -310,12 +317,13 @@ def test_build_script_output_is_the_published_set_and_no_repo_files(tmp_path: Pa
 def test_jobs_are_pinned_timed_and_on_a_fixed_image() -> None:
     for name, job in JOBS.items():
         assert job["runs-on"] == "ubuntu-24.04", name
-        assert 0 < job["timeout-minutes"] <= 5, name
+        # The smoke job waits up to 3 minutes for propagation, so it gets 10.
+        assert 0 < job["timeout-minutes"] <= (10 if name == "smoke" else 5), name
         for step in job["steps"]:
             if step.get("uses", "").startswith("actions/checkout@"):
                 assert step["with"]["persist-credentials"] is False, name
     uses_lines = re.findall(r"uses:\s*(\S+)(.*)", WORKFLOW_TEXT)
-    assert len(uses_lines) == 4
+    assert len(uses_lines) == 7  # build 4, deploy 1, smoke 2
     for action, comment in uses_lines:
         assert re.fullmatch(r"[\w.-]+/[\w.-]+@[0-9a-f]{40}", action), action
         assert re.fullmatch(r"\s*# v\d+\.\d+\.\d+", comment), action

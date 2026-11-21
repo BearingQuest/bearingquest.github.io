@@ -3,7 +3,7 @@
 SHELL := /bin/bash
 .SHELLFLAGS := -euo pipefail -c
 .DEFAULT_GOAL := help
-.PHONY: help check e2e audit hooks blog
+.PHONY: help check e2e audit hooks blog sbom smoke
 
 help: ## List the targets
 	@grep -E '^[a-z0-9]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{ printf "  %-6s %s\n", $$1, $$2 }'
@@ -28,6 +28,16 @@ audit: ## pip-audit every package locked in uv.lock
 blog: ## Build the blog with Pelican into _build/blog
 	scripts/build-blog.sh
 	@echo "Built the blog in _build/blog"
+
+# The same commands as the SBOM step in the build job of .github/workflows/pages.yml
+# (R22); tests/test_sbom.py fails if the two drift apart.
+sbom: ## CycloneDX SBOM of the locked site group into _build
+	mkdir -p _build
+	uv export --locked --format cyclonedx1.5 --only-group site --no-emit-project --output-file _build/sbom-site.cdx.json
+
+# The live-site check that pages.yml (after a deploy) and smoke.yml (daily) run (R23).
+smoke: ## Check the five live URLs on bearingquest.com (needs network)
+	uv run --no-project python3 scripts/smoke.py
 
 hooks: ## Use the committed hooks in .githooks (pre-push runs gitleaks)
 	git config core.hooksPath .githooks
