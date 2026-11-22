@@ -313,3 +313,15 @@ def test_agents_md_flags_a_baseline_reaudit() -> None:
     # AGENT-08: a scope change (new package, GUI, Pages site, release workflow, AWS
     # deploy) brings new controls into play, so the plan must say a re-audit is due.
     assert "a baseline re-audit is due" in agents_text()
+
+
+def test_agents_md_says_home_page_screenshots_are_retaken_in_the_pr() -> None:
+    # The README screenshots come from scripts/readme-screens.py, which the sandbox
+    # can't run, so AGENTS.md must say the owner retakes them in the same pull request
+    # whenever the home page's first screen changes.
+    assert (
+        "A pull request that changes what the home page's first screen shows says so in "
+        "its plan; the owner then runs scripts/build-site.sh and scripts/readme-screens.py "
+        "in a plain Terminal and commits the new docs/readme/ screenshots in the same "
+        "pull request."
+    ) in agents_text()

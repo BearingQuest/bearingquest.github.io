@@ -24,6 +24,7 @@ npm; Python tools come from `uv.lock`.
 - `tests/test_pages_deploy.py` - pytest checks for `site-files.txt` and `pages.yml`
 - `tests/test_sbom.py`, `tests/test_smoke.py` - pytest checks for the build SBOM (R22) and the
   smoke script (R23; no network)
+- `tests/test_readme.py` - pytest checks for the README images and `docs/readme/`
 - `tests/test_hooks.py` - pytest checks for the pre-push hook and the Makefile
 - `tests/test_claude_settings.py` - pytest checks that `.claude/settings.json` keeps every
   deny, ask and sandbox rule (each `Bash(cmd *)` with its bare `Bash(cmd)`), excludes only `gh`
@@ -32,6 +33,8 @@ npm; Python tools come from `uv.lock`.
 - `tests/e2e/` - Chromium tests of the built site (`make e2e`), marked `e2e`
 - `tests/_proc.py` - the only place the tests start a process
 - `scripts/smoke.py` - the R23 check of five live URLs, standard library only (`make smoke`)
+- `scripts/readme-screens.py` - retakes the README screenshots in `docs/readme/`; run by the
+  owner in a plain Terminal
 - `scripts/build-site.sh` - copies the `site-files.txt` paths into one directory and adds
   the Pelican blog build (`scripts/build-blog.sh`, output `_build/blog`, gitignored) as
   `blog/`; `pages.yml` and the tests both run it
@@ -57,6 +60,8 @@ npm; Python tools come from `uv.lock`.
 - `docs/design.md` - how the site uses the design system; UI work follows it
 - `docs/design/` - `tokens.json`, `site-layer.json`, logos, accepted screens and the
   reference stylesheet
+- `docs/readme/` - README images only (checked by `tests/test_readme.py`); `docs/design/` is
+  for UI work
 
 ## CI
 
@@ -110,6 +115,9 @@ artifact. Its `build` job runs on every pull request and push to `main`; its
 - A script that starts a browser outside the e2e container (for example a
   screenshot script) is run by the owner in a plain Terminal after reading it.
   The sandbox can't start Chromium on macOS. Say so in the plan; don't try it.
+- A pull request that changes what the home page's first screen shows says so in its
+  plan; the owner then runs scripts/build-site.sh and scripts/readme-screens.py in a
+  plain Terminal and commits the new docs/readme/ screenshots in the same pull request.
 - Don't add `sandbox.network.allowLocalBinding` unless this repo's tests start a
   local server; if they do, propose it in the plan with a decisions row.
 - When a planned change first adds a Python package or `docs/PRD.md` to a repo
