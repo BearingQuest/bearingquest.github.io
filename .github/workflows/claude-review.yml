@@ -45,7 +45,8 @@ jobs:
           # run only. The reviewer has no Bash (--allowedTools is the inline-comment tool
           # alone) and the sandbox wraps only Bash, so nothing is lost; every deny rule in
           # the repo settings still applies. Needs Claude Code 2.1.285 or later; the action
-          # pins 2.1.318.
+          # installs the version set by CLAUDE_CODE_VERSION in its base-action/action.yml;
+          # check it there when Dependabot updates the action.
           claude_args: |
             --model claude-sonnet-5-5
             --settings '{"sandbox":{"enabled":false}}'
